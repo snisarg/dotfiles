@@ -7,7 +7,7 @@ set autoindent
 set shiftwidth=2    " Spaces per indent
 set tabstop=2 	    " Spaces per tab in display
 set softtabstop=2   " Spaces per tab when inserting
-#set expandtab	    " substitute spaces for tabs
+"set expandtab	    " substitute spaces for tabs
 
 set showcmd         " Show normal mode commands as they are entered
 set showmode        " Show editing mode in status (-- INSERT --)
