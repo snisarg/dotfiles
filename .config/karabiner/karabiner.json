@@ -1039,7 +1039,7 @@
                         ]
                     },
                     {
-                        "description": "Number row dual-role → F-keys when held (no stray character)",
+                        "description": "Number row dual-role → digit tap / F-key hold (fast typing, no lost digits)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -1052,7 +1052,7 @@
                                 ],
                                 "parameters": {
                                     "basic.to_if_alone_timeout_milliseconds": 250,
-                                    "basic.to_if_held_down_threshold_milliseconds": 200
+                                    "basic.to_if_held_down_threshold_milliseconds": 170
                                 },
                                 "type": "basic"
                             },
@@ -1062,7 +1062,7 @@
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "vk_none" }],
+                                    "to_if_canceled": [{ "key_code": "1" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
                                 },
                                 "to_if_alone": [
@@ -1085,7 +1085,7 @@
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "vk_none" }],
+                                    "to_if_canceled": [{ "key_code": "2" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
                                 },
                                 "to_if_alone": [
@@ -1108,7 +1108,7 @@
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "vk_none" }],
+                                    "to_if_canceled": [{ "key_code": "3" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
                                 },
                                 "to_if_alone": [
@@ -1131,7 +1131,7 @@
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "vk_none" }],
+                                    "to_if_canceled": [{ "key_code": "4" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
                                 },
                                 "to_if_alone": [
@@ -1154,7 +1154,7 @@
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "vk_none" }],
+                                    "to_if_canceled": [{ "key_code": "5" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
                                 },
                                 "to_if_alone": [
@@ -1177,7 +1177,7 @@
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "vk_none" }],
+                                    "to_if_canceled": [{ "key_code": "6" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
                                 },
                                 "to_if_alone": [
@@ -1200,7 +1200,7 @@
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "vk_none" }],
+                                    "to_if_canceled": [{ "key_code": "7" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
                                 },
                                 "to_if_alone": [
@@ -1223,7 +1223,7 @@
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "vk_none" }],
+                                    "to_if_canceled": [{ "key_code": "8" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
                                 },
                                 "to_if_alone": [
@@ -1246,7 +1246,7 @@
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "vk_none" }],
+                                    "to_if_canceled": [{ "key_code": "9" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
                                 },
                                 "to_if_alone": [
@@ -1269,7 +1269,7 @@
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "vk_none" }],
+                                    "to_if_canceled": [{ "key_code": "0" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
                                 },
                                 "to_if_alone": [
@@ -1292,7 +1292,7 @@
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "vk_none" }],
+                                    "to_if_canceled": [{ "key_code": "hyphen" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
                                 },
                                 "to_if_alone": [
@@ -1315,7 +1315,7 @@
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "vk_none" }],
+                                    "to_if_canceled": [{ "key_code": "equal_sign" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
                                 },
                                 "to_if_alone": [
