@@ -6,6 +6,7 @@
                 "rules": [
                     {
                         "description": "Tab or ' = Hyper; launch apps/web with Hyper+letter",
+                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
@@ -36,11 +37,6 @@
                                     "key_code": "quote",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "parameters": {
-                                    "basic.to_if_alone_timeout_milliseconds": 150,
-                                    "basic.to_if_held_down_threshold_milliseconds": 100
-                                },
-                                "to": [{ "key_code": "vk_none" }],
                                 "to_after_key_up": [
                                     {
                                         "set_variable": {
@@ -49,14 +45,19 @@
                                         }
                                     }
                                 ],
+                                "to_delayed_action": {
+                                    "to_if_canceled": [{ "key_code": "quote" }],
+                                    "to_if_invoked": [{ "key_code": "vk_none" }]
+                                },
                                 "to_if_alone": [
                                     {
-                                        "key_code": "quote",
-                                        "repeat": false
+                                        "halt": true,
+                                        "key_code": "quote"
                                     }
                                 ],
                                 "to_if_held_down": [
                                     {
+                                        "halt": true,
                                         "set_variable": {
                                             "name": "hyper_layer",
                                             "value": 1
