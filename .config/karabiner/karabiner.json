@@ -6,7 +6,6 @@
                 "rules": [
                     {
                         "description": "Tab or ' = Hyper; launch apps/web with Hyper+letter",
-                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
@@ -30,40 +29,6 @@
                                     }
                                 ],
                                 "to_if_alone": [{ "key_code": "tab" }],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "key_code": "quote",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to_after_key_up": [
-                                    {
-                                        "set_variable": {
-                                            "name": "hyper_layer",
-                                            "value": 0
-                                        }
-                                    }
-                                ],
-                                "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "quote" }],
-                                    "to_if_invoked": [{ "key_code": "vk_none" }]
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "quote"
-                                    }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "halt": true,
-                                        "set_variable": {
-                                            "name": "hyper_layer",
-                                            "value": 1
-                                        }
-                                    }
-                                ],
                                 "type": "basic"
                             },
                             {
@@ -142,6 +107,26 @@
                                     {
                                         "halt": true,
                                         "shell_command": "open /Users/snisarg/Applications/Google\\ Docs.app"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "name": "hyper_layer",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "o",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to": [
+                                    {
+                                        "halt": true,
+                                        "shell_command": "open -a 'Microsoft OneNote'"
                                     }
                                 ],
                                 "type": "basic"
@@ -304,10 +289,10 @@
                                     }
                                 ],
                                 "from": {
-                                    "key_code": "open_bracket",
+                                    "key_code": "q",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "to": [{ "key_code": "delete_or_backspace" }],
+                                "to": [{ "key_code": "page_up" }],
                                 "type": "basic"
                             },
                             {
@@ -319,85 +304,10 @@
                                     }
                                 ],
                                 "from": {
-                                    "key_code": "7",
+                                    "key_code": "e",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "to": [{ "key_code": "7" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "8",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "8" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "9",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "9" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "u",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "4" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "i",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "5" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "o",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "6" }],
+                                "to": [{ "key_code": "page_down" }],
                                 "type": "basic"
                             },
                             {
@@ -412,7 +322,7 @@
                                     "key_code": "j",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "to": [{ "key_code": "1" }],
+                                "to": [{ "key_code": "right_command" }],
                                 "type": "basic"
                             },
                             {
@@ -427,7 +337,7 @@
                                     "key_code": "k",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "to": [{ "key_code": "2" }],
+                                "to": [{ "key_code": "right_option" }],
                                 "type": "basic"
                             },
                             {
@@ -442,7 +352,7 @@
                                     "key_code": "l",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "to": [{ "key_code": "3" }],
+                                "to": [{ "key_code": "right_control" }],
                                 "type": "basic"
                             },
                             {
@@ -454,10 +364,25 @@
                                     }
                                 ],
                                 "from": {
-                                    "key_code": "0",
+                                    "key_code": "semicolon",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "to": [{ "key_code": "0" }],
+                                "to": [{ "key_code": "right_shift" }],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "name": "caps_lock pressed",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "open_bracket",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to": [{ "key_code": "delete_or_backspace" }],
                                 "type": "basic"
                             },
                             {
