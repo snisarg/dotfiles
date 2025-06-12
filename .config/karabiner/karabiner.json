@@ -100,6 +100,26 @@
                                     }
                                 ],
                                 "from": {
+                                    "key_code": "f",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to": [
+                                    {
+                                        "halt": true,
+                                        "shell_command": "open '/Users/snisarg/Applications/Food & Health - Google Sheets.app'"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "name": "hyper_layer",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
+                                ],
+                                "from": {
                                     "key_code": "l",
                                     "modifiers": { "optional": ["any"] }
                                 },
@@ -127,6 +147,26 @@
                                     {
                                         "halt": true,
                                         "shell_command": "open -a 'Microsoft OneNote'"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "name": "hyper_layer",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "c",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to": [
+                                    {
+                                        "halt": true,
+                                        "shell_command": "open -a 'Calendar'"
                                     }
                                 ],
                                 "type": "basic"
