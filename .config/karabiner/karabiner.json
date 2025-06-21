@@ -1629,6 +1629,29 @@
                                     }
                                 ],
                                 "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "grave_accent_and_tilde",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to_delayed_action": {
+                                    "to_if_canceled": [{ "key_code": "grave_accent_and_tilde" }],
+                                    "to_if_invoked": [{ "key_code": "vk_none" }]
+                                },
+                                "to_if_alone": [
+                                    {
+                                        "halt": true,
+                                        "key_code": "grave_accent_and_tilde"
+                                    }
+                                ],
+                                "to_if_held_down": [
+                                    {
+                                        "halt": true,
+                                        "key_code": "f12"
+                                    }
+                                ],
+                                "type": "basic"
                             }
                         ]
                     },
