@@ -106,7 +106,7 @@
                                 "to": [
                                     {
                                         "halt": true,
-                                        "shell_command": "open '/Users/snisarg/Applications/Food & Health - Google Sheets.app'"
+                                        "shell_command": "open '/Users/snisarg/Applications/Food & Health - Google Sheets.app' || open '/Users/snisarg/Applications/Chrome Apps.localized/Sheets.app'"
                                     }
                                 ],
                                 "type": "basic"
@@ -126,7 +126,7 @@
                                 "to": [
                                     {
                                         "halt": true,
-                                        "shell_command": "open /Users/snisarg/Applications/Google\\ Docs.app"
+                                        "shell_command": "open /Users/snisarg/Applications/Google\\ Docs.app || open /Users/snisarg/Applications/Chrome\\ Apps.localized/Docs.app"
                                     }
                                 ],
                                 "type": "basic"
