@@ -38,7 +38,7 @@
           "to_delayed_action": {
             "to_if_invoked": [
               { "set_variable": { "name": "nav_layer", "value": 0 } },
-              { "set_notification_message": { "id": "nav-layer", "text": "Nav layer auto-OFF" } }
+              { "set_notification_message": { "id": "nav-layer", "text": "" } } // empty text = hide notif
             ],
             "to_if_canceled": []
           },
@@ -58,7 +58,7 @@
           /* tap-alone → layer OFF + toast */
           "to_if_alone": [
             { "halt": true, "set_variable": { "name": "nav_layer", "value": 0 } },
-            { "set_notification_message": { "id": "nav-layer", "text": "Nav layer OFF" } }
+            { "set_notification_message": { "id": "nav-layer", "text": "" } } // empty text = hide notif
           ],
           "type": "basic"
         },
@@ -79,7 +79,7 @@
           "to_delayed_action": {
             "to_if_invoked": [
               { "set_variable": { "name": "nav_layer", "value": 0 } },
-              { "set_notification_message": { "id": "nav-layer", "text": "Nav layer auto-OFF" } }
+              { "set_notification_message": { "id": "nav-layer", "text": "" } } // empty text = hide notif
             ],
             "to_if_canceled": []
           },

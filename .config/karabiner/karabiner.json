@@ -29,7 +29,7 @@
                                         {
                                             "set_notification_message": {
                                                 "id": "nav-layer",
-                                                "text": "Nav layer auto-OFF"
+                                                "text": ""
                                             }
                                         }
                                     ]
@@ -71,7 +71,7 @@
                                     {
                                         "set_notification_message": {
                                             "id": "nav-layer",
-                                            "text": "Nav layer OFF"
+                                            "text": ""
                                         }
                                     }
                                 ],
@@ -104,7 +104,7 @@
                                         {
                                             "set_notification_message": {
                                                 "id": "nav-layer",
-                                                "text": "Nav layer auto-OFF"
+                                                "text": ""
                                             }
                                         }
                                     ]
