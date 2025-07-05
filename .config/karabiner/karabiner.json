@@ -5,6 +5,115 @@
                 "parameters": { "basic.to_if_held_down_threshold_milliseconds": 200 },
                 "rules": [
                     {
+                        "description": "Hold right_command for nav layer, 10s auto-off",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "name": "nav_layer",
+                                        "type": "variable_if",
+                                        "value": 0
+                                    }
+                                ],
+                                "from": { "key_code": "right_command" },
+                                "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
+                                "to_delayed_action": {
+                                    "to_if_canceled": [],
+                                    "to_if_invoked": [
+                                        {
+                                            "set_variable": {
+                                                "name": "nav_layer",
+                                                "value": 0
+                                            }
+                                        },
+                                        {
+                                            "set_notification_message": {
+                                                "id": "nav-layer",
+                                                "text": "Nav layer auto-OFF"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "to_if_alone": [
+                                    {
+                                        "set_variable": {
+                                            "name": "nav_layer",
+                                            "value": 1
+                                        }
+                                    },
+                                    {
+                                        "set_notification_message": {
+                                            "id": "nav-layer",
+                                            "text": "Nav layer ON"
+                                        }
+                                    }
+                                ],
+                                "to_if_held_down": [{ "key_code": "right_command" }],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "name": "nav_layer",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
+                                ],
+                                "from": { "key_code": "right_command" },
+                                "to_if_alone": [
+                                    {
+                                        "halt": true,
+                                        "set_variable": {
+                                            "name": "nav_layer",
+                                            "value": 0
+                                        }
+                                    },
+                                    {
+                                        "set_notification_message": {
+                                            "id": "nav-layer",
+                                            "text": "Nav layer OFF"
+                                        }
+                                    }
+                                ],
+                                "to_if_held_down": [{ "key_code": "right_command" }],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "name": "nav_layer",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "a",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
+                                "to": [{ "key_code": "left_arrow" }],
+                                "to_delayed_action": {
+                                    "to_if_canceled": [],
+                                    "to_if_invoked": [
+                                        {
+                                            "set_variable": {
+                                                "name": "nav_layer",
+                                                "value": 0
+                                            }
+                                        },
+                                        {
+                                            "set_notification_message": {
+                                                "id": "nav-layer",
+                                                "text": "Nav layer auto-OFF"
+                                            }
+                                        }
+                                    ]
+                                },
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Hold left_control for nav layer, Esc otherwise",
                         "enabled": false,
                         "manipulators": [
@@ -2012,6 +2121,7 @@
                     },
                     {
                         "description": "Hold left_option for nav layer, Esc otherwise",
+                        "enabled": false,
                         "manipulators": [
                             {
                                 "conditions": [
