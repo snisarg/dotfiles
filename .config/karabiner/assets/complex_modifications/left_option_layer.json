@@ -1,0 +1,94 @@
+// ┌─────────────────────────────────────────────────────────────┐
+// │ Key-index (reserved by this rule-set)                       │
+// ├─────────────────────────────────────────────────────────────┤
+// │ Layer key : left_option  (tap toggles)                      │
+// │ Esc       : left_option  (tap when layer OFF)               │
+// │ Nav       : w↑  s↓  a←  d→   q Pg↑  e Pg↓                  │
+// │ Mods      : j⌘  k⌥  l⌃  ;⇧                                 │
+// │ Brackets  : u {   i }   n [   m ]   o =   p +   [⌫         │
+// └─────────────────────────────────────────────────────────────┘
+
+{
+  "title": "Left-Option toggles nav layer; auto-off after 10 s",
+  "rules": [
+    {
+      "description": "Hold left_option for nav layer, Esc otherwise",
+      "enabled": false,
+
+      "manipulators": [
+
+        /*───────────────────────────────────────────────────────────
+          1 ▸ Layer OFF → tap ⌥ turns it ON  (auto-timeout set)
+        ───────────────────────────────────────────────────────────*/
+        {
+          "conditions": [ { "name": "nav_layer", "type": "variable_if", "value": 0 } ],
+          "from":       { "key_code": "left_option" },
+
+          /* forward a real Option while key is held with others */
+          "to_if_held_down": [ { "key_code": "left_option" } ],
+
+          /* quick tap → layer ON + toast */
+          "to_if_alone": [
+            { "set_variable": { "name": "nav_layer", "value": 1 } },
+            { "set_notification_message": { "id": "nav-layer", "text": "Nav layer ON" } }
+          ],
+
+          /* auto-OFF after 10 000 ms idle */
+          "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
+          "to_delayed_action": {
+            "to_if_invoked": [
+              { "set_variable": { "name": "nav_layer", "value": 0 } },
+              { "set_notification_message": { "id": "nav-layer", "text": "Nav layer auto-OFF" } }
+            ],
+            "to_if_canceled": []
+          },
+          "type": "basic"
+        },
+
+        /*───────────────────────────────────────────────────────────
+          2 ▸ Layer ON → tap ⌥ turns it OFF (Option still usable)
+        ───────────────────────────────────────────────────────────*/
+        {
+          "conditions": [ { "name": "nav_layer", "type": "variable_if", "value": 1 } ],
+          "from":       { "key_code": "left_option" },
+
+          /* keep real Option while held */
+          "to_if_held_down": [ { "key_code": "left_option" } ],
+
+          /* tap-alone → layer OFF + toast */
+          "to_if_alone": [
+            { "halt": true, "set_variable": { "name": "nav_layer", "value": 0 } },
+            { "set_notification_message": { "id": "nav-layer", "text": "Nav layer OFF" } }
+          ],
+          "type": "basic"
+        },
+
+        /*───────────────────────────────────────────────────────────
+          3 ▸ Example nav key (A → ←) with 10 s timeout
+             ─ duplicate / adapt for W S D Q E … as needed
+        ───────────────────────────────────────────────────────────*/
+        {
+          "conditions": [ { "name": "nav_layer", "type": "variable_if", "value": 1 } ],
+          "from": {
+            "key_code": "a",
+            "modifiers": { "optional": [ "any" ] }
+          },
+          "to": [ { "key_code": "left_arrow" } ],
+
+          "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
+          "to_delayed_action": {
+            "to_if_invoked": [
+              { "set_variable": { "name": "nav_layer", "value": 0 } },
+              { "set_notification_message": { "id": "nav-layer", "text": "Nav layer auto-OFF" } }
+            ],
+            "to_if_canceled": []
+          },
+          "type": "basic"
+        }
+
+        /* ➜ replicate block 3 for s d w q e j k l ; … as needed */
+      ]
+    }
+  ]
+}
+

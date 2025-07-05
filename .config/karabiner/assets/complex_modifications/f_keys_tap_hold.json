@@ -1,0 +1,136 @@
+{
+  // ┌─────────────────────────────────────────────┐
+  // │ Key-Index  ▸ dual-role keys in this profile │
+  // ├─────────────────────────────────────────────┤
+  // │ Tap → Digit / Symbol                        │
+  // │ Hold → F-key                                │
+  // │                                             │
+  // │ 1 2 3 4 5 6 7 8 9 0 hyphen (-) p            │
+  // │ Commented: grave_accent_and_tilde (` ~)     │
+  // └─────────────────────────────────────────────┘
+
+  "title": "Number-row dual-role → digit tap / F-key hold",
+  "rules": [
+    {
+      "description": "Fast typing: tap gets the digit, hold gets matching F-key (no lost key presses)",
+      "manipulators": [
+
+        // ─────────────────────────────────────────
+        // 0 ▸ Global timing tweak — one dummy rule
+        //     makes the per-key settings shorter
+        // ─────────────────────────────────────────
+        {
+          "type": "basic",
+          "conditions": [
+            { "type": "frontmost_application_if", "bundle_identifiers": ["^"] }
+          ],
+          "parameters": {
+            // ≤250 ms counts as a *tap*
+            "basic.to_if_alone_timeout_milliseconds": 250,
+            // ≥170 ms counts as a *hold*
+            "basic.to_if_held_down_threshold_milliseconds": 170
+          }
+        },
+
+        // ─────────────────────────────────────────
+        // 1-0, hyphen, equal, back-tick
+        //   • tap   → original key
+        //   • hold  → matching Fn key
+        // ─────────────────────────────────────────
+
+        // 1  → F1
+        { "type": "basic", "from": { "key_code": "1", "modifiers": { "optional": ["any"] } },
+          "to_delayed_action": { "to_if_canceled": [{ "key_code": "1" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
+          "to_if_alone": [ { "key_code": "1", "halt": true } ],
+          "to_if_held_down": [ { "key_code": "f1", "halt": true } ]
+        },
+
+        // 2  → F2
+        { "type": "basic", "from": { "key_code": "2", "modifiers": { "optional": ["any"] } },
+          "to_delayed_action": { "to_if_canceled": [{ "key_code": "2" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
+          "to_if_alone": [ { "key_code": "2", "halt": true } ],
+          "to_if_held_down": [ { "key_code": "f2", "halt": true } ]
+        },
+
+        // 3  → F3
+        { "type": "basic", "from": { "key_code": "3", "modifiers": { "optional": ["any"] } },
+          "to_delayed_action": { "to_if_canceled": [{ "key_code": "3" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
+          "to_if_alone": [ { "key_code": "3", "halt": true } ],
+          "to_if_held_down": [ { "key_code": "f3", "halt": true } ]
+        },
+
+        // 4  → F4
+        { "type": "basic", "from": { "key_code": "4", "modifiers": { "optional": ["any"] } },
+          "to_delayed_action": { "to_if_canceled": [{ "key_code": "4" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
+          "to_if_alone": [ { "key_code": "4", "halt": true } ],
+          "to_if_held_down": [ { "key_code": "f4", "halt": true } ]
+        },
+
+        // 5  → F5
+        { "type": "basic", "from": { "key_code": "5", "modifiers": { "optional": ["any"] } },
+          "to_delayed_action": { "to_if_canceled": [{ "key_code": "5" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
+          "to_if_alone": [ { "key_code": "5", "halt": true } ],
+          "to_if_held_down": [ { "key_code": "f5", "halt": true } ]
+        },
+
+        // 6  → F6
+        { "type": "basic", "from": { "key_code": "6", "modifiers": { "optional": ["any"] } },
+          "to_delayed_action": { "to_if_canceled": [{ "key_code": "6" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
+          "to_if_alone": [ { "key_code": "6", "halt": true } ],
+          "to_if_held_down": [ { "key_code": "f6", "halt": true } ]
+        },
+
+        // 7  → F7
+        { "type": "basic", "from": { "key_code": "7", "modifiers": { "optional": ["any"] } },
+          "to_delayed_action": { "to_if_canceled": [{ "key_code": "7" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
+          "to_if_alone": [ { "key_code": "7", "halt": true } ],
+          "to_if_held_down": [ { "key_code": "f7", "halt": true } ]
+        },
+
+        // 8  → F8
+        { "type": "basic", "from": { "key_code": "8", "modifiers": { "optional": ["any"] } },
+          "to_delayed_action": { "to_if_canceled": [{ "key_code": "8" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
+          "to_if_alone": [ { "key_code": "8", "halt": true } ],
+          "to_if_held_down": [ { "key_code": "f8", "halt": true } ]
+        },
+
+        // 9  → F9
+        { "type": "basic", "from": { "key_code": "9", "modifiers": { "optional": ["any"] } },
+          "to_delayed_action": { "to_if_canceled": [{ "key_code": "9" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
+          "to_if_alone": [ { "key_code": "9", "halt": true } ],
+          "to_if_held_down": [ { "key_code": "f9", "halt": true } ]
+        },
+
+        // 0  → F10
+        { "type": "basic", "from": { "key_code": "0", "modifiers": { "optional": ["any"] } },
+          "to_delayed_action": { "to_if_canceled": [{ "key_code": "0" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
+          "to_if_alone": [ { "key_code": "0", "halt": true } ],
+          "to_if_held_down": [ { "key_code": "f10", "halt": true } ]
+        },
+
+        // -  → F11
+        { "type": "basic", "from": { "key_code": "hyphen", "modifiers": { "optional": ["any"] } },
+          "to_delayed_action": { "to_if_canceled": [{ "key_code": "hyphen" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
+          "to_if_alone": [ { "key_code": "hyphen", "halt": true } ],
+          "to_if_held_down": [ { "key_code": "f11", "halt": true } ]
+        },
+
+        // p  → F12
+        { "type": "basic", "from": { "key_code": "p", "modifiers": { "optional": ["any"] } },
+          "to_delayed_action": { "to_if_canceled": [{ "key_code": "p" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
+          "to_if_alone": [ { "key_code": "p", "halt": true } ],
+          "to_if_held_down": [ { "key_code": "f12", "halt": true } ]
+        } // ,
+
+        // `  → F13  (shares F12 if you prefer)
+        // { "type": "basic", "from": { "key_code": "grave_accent_and_tilde", "modifiers": { "optional": ["any"] } },
+        //  "to_delayed_action": { "to_if_canceled": [{ "key_code": "grave_accent_and_tilde" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
+        //  "to_if_alone": [ { "key_code": "grave_accent_and_tilde", "halt": true } ],
+        //  "to_if_held_down": [ { "key_code": "f12", "halt": true } ]
+        // }
+
+      ] /* manipulators */
+    }
+  ] /* rules */
+}
+
