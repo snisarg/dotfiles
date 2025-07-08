@@ -6,7 +6,7 @@
 // │ Nav keys   : w ↑  s ↓  a ←  d →  q Pg↑  e Pg↓│
 // │ Mods       : j ⌘  k ⌥  l ⌃  ; ⇧              │
 // │ Brackets   : u {   i }   n [   m ]           │
-// │ Other      : [ ⌫   o =   p +                 │
+// │ Other      : [ ⌫   o =   p +  . word_delete  │
 // └──────────────────────────────────────────────┘
 
 {
@@ -86,6 +86,12 @@
           "conditions": [ { "name": "caps_lock pressed", "type": "variable_if", "value": 1 } ],
           "from": { "key_code": "open_bracket", "modifiers": { "optional": ["any"] } },
           "to":   [ { "key_code": "delete_or_backspace" } ],
+          "type": "basic"
+        },
+        {
+          "conditions": [ { "name": "caps_lock pressed", "type": "variable_if", "value": 1 } ],
+          "from": { "key_code": "period", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "key_code": "delete_or_backspace", "modifiers": ["right_option"] } ],
           "type": "basic"
         },
 
