@@ -5,6 +5,201 @@
                 "parameters": { "basic.to_if_held_down_threshold_milliseconds": 200 },
                 "rules": [
                     {
+                        "description": "Hold Space ≥ 200ms = layer; Tap = space; chord = space+key",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "spacebar",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "parameters": {
+                                    "basic.to_delayed_action_delay_milliseconds": 500,
+                                    "basic.to_if_alone_timeout_milliseconds": 250
+                                },
+                                "to": [
+                                    {
+                                        "set_variable": {
+                                            "name": "space_layer",
+                                            "value": 1
+                                        }
+                                    },
+                                    {
+                                        "set_variable": {
+                                            "name": "space_printed",
+                                            "value": 1
+                                        }
+                                    }
+                                ],
+                                "to_after_key_up": [
+                                    {
+                                        "set_variable": {
+                                            "name": "space_layer",
+                                            "value": 0
+                                        }
+                                    }
+                                ],
+                                "to_delayed_action": {
+                                    "to_if_canceled": [
+                                        {
+                                            "set_variable": {
+                                                "name": "space_layer",
+                                                "value": 0
+                                            }
+                                        },
+                                        {
+                                            "conditions": [
+                                                {
+                                                    "name": "space_printed",
+                                                    "type": "variable_if",
+                                                    "value": 1
+                                                }
+                                            ],
+                                            "key_code": "spacebar"
+                                        },
+                                        {
+                                            "set_variable": {
+                                                "name": "space_printed",
+                                                "value": 0
+                                            }
+                                        }
+                                    ]
+                                },
+                                "to_if_alone": [
+                                    {
+                                        "conditions": [
+                                            {
+                                                "name": "space_printed",
+                                                "type": "variable_if",
+                                                "value": 1
+                                            }
+                                        ],
+                                        "key_code": "spacebar"
+                                    },
+                                    {
+                                        "set_variable": {
+                                            "name": "space_printed",
+                                            "value": 0
+                                        }
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "name": "space_layer",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "e",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to": [{ "key_code": "up_arrow" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Nisarg Hold Space ≥ 200ms = layer; Tap = space; chord = space+key",
+                        "enabled": false,
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "spacebar",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "parameters": {
+                                    "basic.to_delayed_action_delay_milliseconds": 500,
+                                    "basic.to_if_alone_timeout_milliseconds": 250
+                                },
+                                "to": [
+                                    {
+                                        "set_variable": {
+                                            "name": "space_layer",
+                                            "value": 1
+                                        }
+                                    },
+                                    {
+                                        "set_variable": {
+                                            "name": "space_printed",
+                                            "value": 1
+                                        }
+                                    }
+                                ],
+                                "to_after_key_up": [
+                                    {
+                                        "set_variable": {
+                                            "name": "space_layer",
+                                            "value": 0
+                                        }
+                                    }
+                                ],
+                                "to_delayed_action": {
+                                    "to_if_canceled": [
+                                        {
+                                            "set_variable": {
+                                                "name": "space_layer",
+                                                "value": 0
+                                            }
+                                        },
+                                        {
+                                            "conditions": [
+                                                {
+                                                    "name": "space_printed",
+                                                    "type": "variable_if",
+                                                    "value": 1
+                                                }
+                                            ],
+                                            "key_code": "spacebar"
+                                        },
+                                        {
+                                            "set_variable": {
+                                                "name": "space_printed",
+                                                "value": 0
+                                            }
+                                        }
+                                    ]
+                                },
+                                "to_if_alone": [
+                                    {
+                                        "conditions": [
+                                            {
+                                                "name": "space_printed",
+                                                "type": "variable_if",
+                                                "value": 1
+                                            }
+                                        ],
+                                        "key_code": "spacebar"
+                                    },
+                                    {
+                                        "set_variable": {
+                                            "name": "space_printed",
+                                            "value": 0
+                                        }
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "name": "space_layer",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "e",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to": [{ "key_code": "up_arrow" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Hold CAPS LOCK for layer 1, Esc otherwise",
                         "manipulators": [
                             {
@@ -424,344 +619,6 @@
                                             "set_notification_message": {
                                                 "id": "nav-layer",
                                                 "text": ""
-                                            }
-                                        }
-                                    ]
-                                },
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
-                        "description": "Hold left_control for nav layer, Esc otherwise",
-                        "enabled": false,
-                        "manipulators": [
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 0
-                                    }
-                                ],
-                                "from": { "key_code": "left_control" },
-                                "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
-                                "to_delayed_action": {
-                                    "to_if_canceled": [],
-                                    "to_if_invoked": [
-                                        {
-                                            "set_variable": {
-                                                "name": "nav_layer",
-                                                "value": 0
-                                            }
-                                        },
-                                        {
-                                            "set_notification_message": {
-                                                "id": "nav-layer",
-                                                "text": "Nav layer auto-OFF"
-                                            }
-                                        }
-                                    ]
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "set_variable": {
-                                            "name": "nav_layer",
-                                            "value": 1
-                                        }
-                                    },
-                                    {
-                                        "set_notification_message": {
-                                            "id": "nav-layer",
-                                            "text": "Nav layer ON"
-                                        }
-                                    }
-                                ],
-                                "to_if_held_down": [{ "key_code": "left_control" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": { "key_code": "left_control" },
-                                "to_if_alone": [
-                                    {
-                                        "halt": true,
-                                        "set_variable": {
-                                            "name": "nav_layer",
-                                            "value": 0
-                                        }
-                                    },
-                                    {
-                                        "set_notification_message": {
-                                            "id": "nav-layer",
-                                            "text": "Nav layer OFF"
-                                        }
-                                    }
-                                ],
-                                "to_if_held_down": [{ "key_code": "left_control" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "a",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
-                                "to": [{ "key_code": "left_arrow" }],
-                                "to_delayed_action": {
-                                    "to_if_canceled": [],
-                                    "to_if_invoked": [
-                                        {
-                                            "set_variable": {
-                                                "name": "nav_layer",
-                                                "value": 0
-                                            }
-                                        },
-                                        {
-                                            "set_notification_message": {
-                                                "id": "nav-layer",
-                                                "text": "Nav layer auto-OFF"
-                                            }
-                                        }
-                                    ]
-                                },
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
-                        "description": "Hold left_shift for nav layer, low latency",
-                        "enabled": false,
-                        "manipulators": [
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 0
-                                    }
-                                ],
-                                "from": { "key_code": "left_shift" },
-                                "parameters": {
-                                    "basic.to_delayed_action_delay_milliseconds": 10000,
-                                    "basic.to_if_alone_timeout_milliseconds": 150,
-                                    "basic.to_if_held_down_threshold_milliseconds": 70
-                                },
-                                "to_delayed_action": {
-                                    "to_if_canceled": [],
-                                    "to_if_invoked": [
-                                        {
-                                            "set_variable": {
-                                                "name": "nav_layer",
-                                                "value": 0
-                                            }
-                                        },
-                                        {
-                                            "set_notification_message": {
-                                                "id": "nav-layer",
-                                                "text": "Nav layer auto-OFF"
-                                            }
-                                        }
-                                    ]
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "set_variable": {
-                                            "name": "nav_layer",
-                                            "value": 1
-                                        }
-                                    },
-                                    {
-                                        "set_notification_message": {
-                                            "id": "nav-layer",
-                                            "text": "Nav layer ON"
-                                        }
-                                    }
-                                ],
-                                "to_if_held_down": [{ "key_code": "left_shift" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": { "key_code": "left_shift" },
-                                "parameters": {
-                                    "basic.to_if_alone_timeout_milliseconds": 150,
-                                    "basic.to_if_held_down_threshold_milliseconds": 70
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "halt": true,
-                                        "set_variable": {
-                                            "name": "nav_layer",
-                                            "value": 0
-                                        }
-                                    },
-                                    {
-                                        "set_notification_message": {
-                                            "id": "nav-layer",
-                                            "text": "Nav layer OFF"
-                                        }
-                                    }
-                                ],
-                                "to_if_held_down": [{ "key_code": "left_shift" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "a",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
-                                "to": [{ "key_code": "left_arrow" }],
-                                "to_delayed_action": {
-                                    "to_if_canceled": [],
-                                    "to_if_invoked": [
-                                        {
-                                            "set_variable": {
-                                                "name": "nav_layer",
-                                                "value": 0
-                                            }
-                                        },
-                                        {
-                                            "set_notification_message": {
-                                                "id": "nav-layer",
-                                                "text": "Nav layer auto-OFF"
-                                            }
-                                        }
-                                    ]
-                                },
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
-                        "description": "Hold left_shift for nav layer, Esc otherwise",
-                        "enabled": false,
-                        "manipulators": [
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 0
-                                    }
-                                ],
-                                "from": { "key_code": "left_shift" },
-                                "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
-                                "to_delayed_action": {
-                                    "to_if_canceled": [],
-                                    "to_if_invoked": [
-                                        {
-                                            "set_variable": {
-                                                "name": "nav_layer",
-                                                "value": 0
-                                            }
-                                        },
-                                        {
-                                            "set_notification_message": {
-                                                "id": "nav-layer",
-                                                "text": "Nav layer auto-OFF"
-                                            }
-                                        }
-                                    ]
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "set_variable": {
-                                            "name": "nav_layer",
-                                            "value": 1
-                                        }
-                                    },
-                                    {
-                                        "set_notification_message": {
-                                            "id": "nav-layer",
-                                            "text": "Nav layer ON"
-                                        }
-                                    }
-                                ],
-                                "to_if_held_down": [{ "key_code": "left_shift" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": { "key_code": "left_shift" },
-                                "to_if_alone": [
-                                    {
-                                        "halt": true,
-                                        "set_variable": {
-                                            "name": "nav_layer",
-                                            "value": 0
-                                        }
-                                    },
-                                    {
-                                        "set_notification_message": {
-                                            "id": "nav-layer",
-                                            "text": "Nav layer OFF"
-                                        }
-                                    }
-                                ],
-                                "to_if_held_down": [{ "key_code": "left_shift" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "a",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
-                                "to": [{ "key_code": "left_arrow" }],
-                                "to_delayed_action": {
-                                    "to_if_canceled": [],
-                                    "to_if_invoked": [
-                                        {
-                                            "set_variable": {
-                                                "name": "nav_layer",
-                                                "value": 0
-                                            }
-                                        },
-                                        {
-                                            "set_notification_message": {
-                                                "id": "nav-layer",
-                                                "text": "Nav layer auto-OFF"
                                             }
                                         }
                                     ]
@@ -1361,1599 +1218,6 @@
                     },
                     {
                         "description": "Home row mods - shift, ctrl, opt, cmd",
-                        "manipulators": [
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "a" },
-                                        { "key_code": "s" },
-                                        { "key_code": "d" },
-                                        { "key_code": "f" }
-                                    ]
-                                },
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_shift",
-                                        "modifiers": ["left_command", "left_option", "left_control"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "a" },
-                                        { "key_code": "s" },
-                                        { "key_code": "d" }
-                                    ]
-                                },
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_shift",
-                                        "modifiers": ["left_option", "left_control"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "a" },
-                                        { "key_code": "d" },
-                                        { "key_code": "f" }
-                                    ]
-                                },
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_shift",
-                                        "modifiers": ["left_command", "left_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "s" },
-                                        { "key_code": "d" },
-                                        { "key_code": "f" }
-                                    ]
-                                },
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_control",
-                                        "modifiers": ["left_command", "left_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "a" },
-                                        { "key_code": "s" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "a" },
-                                    { "key_code": "s" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_shift",
-                                        "modifiers": ["left_control"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "s" },
-                                        { "key_code": "a" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "s" },
-                                    { "key_code": "a" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_shift",
-                                        "modifiers": ["left_control"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "a" },
-                                        { "key_code": "d" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "a" },
-                                    { "key_code": "d" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_shift",
-                                        "modifiers": ["left_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "a" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "d" },
-                                    { "key_code": "a" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_shift",
-                                        "modifiers": ["left_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "a" },
-                                        { "key_code": "f" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "a" },
-                                    { "key_code": "f" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_shift",
-                                        "modifiers": ["left_command"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "f" },
-                                        { "key_code": "a" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "f" },
-                                    { "key_code": "a" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_shift",
-                                        "modifiers": ["left_command"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "s" },
-                                        { "key_code": "d" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "s" },
-                                    { "key_code": "d" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_control",
-                                        "modifiers": ["left_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "s" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "d" },
-                                    { "key_code": "s" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_control",
-                                        "modifiers": ["left_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "s" },
-                                        { "key_code": "f" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "s" },
-                                    { "key_code": "f" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_control",
-                                        "modifiers": ["left_command"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "f" },
-                                        { "key_code": "s" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "f" },
-                                    { "key_code": "s" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_control",
-                                        "modifiers": ["left_command"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "f" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "d" },
-                                    { "key_code": "f" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_option",
-                                        "modifiers": ["left_command"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "f" },
-                                        { "key_code": "d" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "f" },
-                                    { "key_code": "d" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "left_option",
-                                        "modifiers": ["left_command"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": { "key_code": "a" },
-                                "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "a" }],
-                                    "to_if_invoked": [{ "key_code": "vk_none" }]
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "a"
-                                    }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "left_shift"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": { "key_code": "s" },
-                                "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "s" }],
-                                    "to_if_invoked": [{ "key_code": "vk_none" }]
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "s"
-                                    }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "left_control"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": { "key_code": "d" },
-                                "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "d" }],
-                                    "to_if_invoked": [{ "key_code": "vk_none" }]
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "d"
-                                    }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "left_option"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": { "key_code": "f" },
-                                "to_delayed_action": {
-                                    "to_if_canceled": [
-                                        {
-                                            "halt": true,
-                                            "key_code": "f"
-                                        }
-                                    ],
-                                    "to_if_invoked": [{ "key_code": "vk_none" }]
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "f"
-                                    }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "left_command"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "j" },
-                                        { "key_code": "k" },
-                                        { "key_code": "l" },
-                                        { "key_code": "semicolon" }
-                                    ]
-                                },
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_shift",
-                                        "modifiers": ["right_command", "right_option", "right_control"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "semicolon" },
-                                        { "key_code": "l" },
-                                        { "key_code": "k" }
-                                    ]
-                                },
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_shift",
-                                        "modifiers": ["right_option", "right_control"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "semicolon" },
-                                        { "key_code": "k" },
-                                        { "key_code": "j" }
-                                    ]
-                                },
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_shift",
-                                        "modifiers": ["right_command", "right_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "l" },
-                                        { "key_code": "k" },
-                                        { "key_code": "j" }
-                                    ]
-                                },
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_control",
-                                        "modifiers": ["right_command", "right_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "semicolon" },
-                                        { "key_code": "l" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "semicolon" },
-                                    { "key_code": "l" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_shift",
-                                        "modifiers": ["right_control"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "l" },
-                                        { "key_code": "semicolon" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "l" },
-                                    { "key_code": "semicolon" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_shift",
-                                        "modifiers": ["right_control"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "semicolon" },
-                                        { "key_code": "k" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "semicolon" },
-                                    { "key_code": "k" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_shift",
-                                        "modifiers": ["right_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "k" },
-                                        { "key_code": "semicolon" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "k" },
-                                    { "key_code": "semicolon" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_shift",
-                                        "modifiers": ["right_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "semicolon" },
-                                        { "key_code": "j" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "semicolon" },
-                                    { "key_code": "j" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_shift",
-                                        "modifiers": ["right_command"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "j" },
-                                        { "key_code": "semicolon" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "j" },
-                                    { "key_code": "semicolon" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_shift",
-                                        "modifiers": ["right_command"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "l" },
-                                        { "key_code": "k" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "l" },
-                                    { "key_code": "k" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_control",
-                                        "modifiers": ["right_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "k" },
-                                        { "key_code": "l" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "k" },
-                                    { "key_code": "l" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_control",
-                                        "modifiers": ["right_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "l" },
-                                        { "key_code": "j" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "l" },
-                                    { "key_code": "j" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_control",
-                                        "modifiers": ["right_command"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "j" },
-                                        { "key_code": "l" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "j" },
-                                    { "key_code": "l" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_control",
-                                        "modifiers": ["right_command"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "k" },
-                                        { "key_code": "j" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "k" },
-                                    { "key_code": "j" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_option",
-                                        "modifiers": ["right_command"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "simultaneous": [
-                                        { "key_code": "j" },
-                                        { "key_code": "k" }
-                                    ],
-                                    "simultaneous_options": { "key_down_order": "strict" }
-                                },
-                                "to_if_alone": [
-                                    { "key_code": "j" },
-                                    { "key_code": "k" }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "key_code": "right_option",
-                                        "modifiers": ["right_command"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": { "key_code": "j" },
-                                "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "j" }],
-                                    "to_if_invoked": [{ "key_code": "vk_none" }]
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "j"
-                                    }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "right_command"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": { "key_code": "k" },
-                                "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "k" }],
-                                    "to_if_invoked": [{ "key_code": "vk_none" }]
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "k"
-                                    }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "right_option"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": { "key_code": "l" },
-                                "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "l" }],
-                                    "to_if_invoked": [{ "key_code": "vk_none" }]
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "l"
-                                    }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "right_control"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "from": { "key_code": "semicolon" },
-                                "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "semicolon" }],
-                                    "to_if_invoked": [{ "key_code": "vk_none" }]
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "semicolon"
-                                    }
-                                ],
-                                "to_if_held_down": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "right_shift"
-                                    }
-                                ],
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
-                        "description": "Hold left_option for nav layer, Esc otherwise",
-                        "enabled": false,
-                        "manipulators": [
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 0
-                                    }
-                                ],
-                                "from": { "key_code": "left_option" },
-                                "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
-                                "to_delayed_action": {
-                                    "to_if_canceled": [],
-                                    "to_if_invoked": [
-                                        {
-                                            "set_variable": {
-                                                "name": "nav_layer",
-                                                "value": 0
-                                            }
-                                        },
-                                        {
-                                            "set_notification_message": {
-                                                "id": "nav-layer",
-                                                "text": "Nav layer auto-OFF"
-                                            }
-                                        }
-                                    ]
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "set_variable": {
-                                            "name": "nav_layer",
-                                            "value": 1
-                                        }
-                                    },
-                                    {
-                                        "set_notification_message": {
-                                            "id": "nav-layer",
-                                            "text": "Nav layer ON"
-                                        }
-                                    }
-                                ],
-                                "to_if_held_down": [{ "key_code": "left_option" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": { "key_code": "left_option" },
-                                "to_if_alone": [
-                                    {
-                                        "halt": true,
-                                        "set_variable": {
-                                            "name": "nav_layer",
-                                            "value": 0
-                                        }
-                                    },
-                                    {
-                                        "set_notification_message": {
-                                            "id": "nav-layer",
-                                            "text": "Nav layer OFF"
-                                        }
-                                    }
-                                ],
-                                "to_if_held_down": [{ "key_code": "left_option" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "a",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
-                                "to": [{ "key_code": "left_arrow" }],
-                                "to_delayed_action": {
-                                    "to_if_canceled": [],
-                                    "to_if_invoked": [
-                                        {
-                                            "set_variable": {
-                                                "name": "nav_layer",
-                                                "value": 0
-                                            }
-                                        },
-                                        {
-                                            "set_notification_message": {
-                                                "id": "nav-layer",
-                                                "text": "Nav layer auto-OFF"
-                                            }
-                                        }
-                                    ]
-                                },
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
-                        "description": "OG Hold CAPS LOCK for layer 1, esc otherwise",
-                        "enabled": false,
-                        "manipulators": [
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "a",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "left_arrow" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "s",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "down_arrow" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "d",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "right_arrow" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "w",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "up_arrow" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "q",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "page_up" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "e",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "page_down" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "j",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "right_command" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "k",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "right_option" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "l",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "right_control" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "semicolon",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "right_shift" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "open_bracket",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "delete_or_backspace" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "p",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "key_code": "equal_sign",
-                                        "modifiers": ["right_shift"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "o",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "equal_sign" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "i",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "key_code": "close_bracket",
-                                        "modifiers": ["right_shift"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "u",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "key_code": "open_bracket",
-                                        "modifiers": ["right_shift"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "m",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "close_bracket" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "caps_lock pressed",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "n",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [{ "key_code": "open_bracket" }],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "key_code": "caps_lock",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "set_variable": {
-                                            "name": "caps_lock pressed",
-                                            "value": 1
-                                        }
-                                    }
-                                ],
-                                "to_after_key_up": [
-                                    {
-                                        "set_variable": {
-                                            "name": "caps_lock pressed",
-                                            "value": 0
-                                        }
-                                    }
-                                ],
-                                "to_if_alone": [{ "key_code": "escape" }],
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
-                        "description": "Caps toggles nav layer; shuts off if idle 10 s",
-                        "enabled": false,
-                        "manipulators": [
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 0
-                                    }
-                                ],
-                                "from": { "key_code": "caps_lock" },
-                                "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
-                                "to_delayed_action": {
-                                    "to_if_canceled": [],
-                                    "to_if_invoked": [
-                                        {
-                                            "set_variable": {
-                                                "name": "nav_layer",
-                                                "value": 0
-                                            }
-                                        },
-                                        {
-                                            "set_notification_message": {
-                                                "id": "nav-layer",
-                                                "text": "Nav layer auto-OFF"
-                                            }
-                                        }
-                                    ]
-                                },
-                                "to_if_alone": [
-                                    {
-                                        "set_variable": {
-                                            "name": "nav_layer",
-                                            "value": 1
-                                        }
-                                    },
-                                    {
-                                        "set_notification_message": {
-                                            "id": "nav-layer",
-                                            "text": "Nav layer ON"
-                                        }
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": { "key_code": "caps_lock" },
-                                "to_if_alone": [
-                                    {
-                                        "halt": true,
-                                        "set_variable": {
-                                            "name": "nav_layer",
-                                            "value": 0
-                                        }
-                                    },
-                                    {
-                                        "set_notification_message": {
-                                            "id": "nav-layer",
-                                            "text": "Nav layer OFF"
-                                        }
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "nav_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "a",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
-                                "to": [{ "key_code": "left_arrow" }],
-                                "to_delayed_action": {
-                                    "to_if_canceled": [],
-                                    "to_if_invoked": [
-                                        {
-                                            "set_variable": {
-                                                "name": "nav_layer",
-                                                "value": 0
-                                            }
-                                        },
-                                        {
-                                            "set_notification_message": {
-                                                "id": "nav-layer",
-                                                "text": "Nav layer auto-OFF"
-                                            }
-                                        }
-                                    ]
-                                },
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
-                        "description": "OG Tab = Hyper; launch apps/web with Hyper+letter",
-                        "enabled": false,
-                        "manipulators": [
-                            {
-                                "from": {
-                                    "key_code": "tab",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "set_variable": {
-                                            "name": "hyper_layer",
-                                            "value": 1
-                                        }
-                                    }
-                                ],
-                                "to_after_key_up": [
-                                    {
-                                        "set_variable": {
-                                            "name": "hyper_layer",
-                                            "value": 0
-                                        }
-                                    }
-                                ],
-                                "to_if_alone": [{ "key_code": "tab" }],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "hyper_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "t",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "halt": true,
-                                        "shell_command": "open -a 'Toggl Track'"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "hyper_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "i",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "halt": true,
-                                        "shell_command": "open -a 'iTerm'"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "hyper_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "k",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "halt": true,
-                                        "shell_command": "open /Users/snisarg/Applications/Keep.app"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "hyper_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "f",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "halt": true,
-                                        "shell_command": "open '/Users/snisarg/Applications/Food & Health - Google Sheets.app' || open '/Users/snisarg/Applications/Chrome Apps.localized/Sheets.app'"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "hyper_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "l",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "halt": true,
-                                        "shell_command": "open /Users/snisarg/Applications/Google\\ Docs.app || open /Users/snisarg/Applications/Chrome\\ Apps.localized/Docs.app"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "hyper_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "o",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "halt": true,
-                                        "shell_command": "open -a 'Microsoft OneNote'"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "hyper_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "c",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "halt": true,
-                                        "shell_command": "open -a 'Calendar'"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "hyper_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "b",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "halt": true,
-                                        "shell_command": "open -a 'Safari'"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "hyper_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "n",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "halt": true,
-                                        "shell_command": "open -a 'Notion'"
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "hyper_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "w",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "up_arrow",
-                                        "modifiers": ["left_command", "left_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "hyper_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "a",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "left_arrow",
-                                        "modifiers": ["left_command", "left_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "hyper_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "s",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "down_arrow",
-                                        "modifiers": ["left_command", "left_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            },
-                            {
-                                "conditions": [
-                                    {
-                                        "name": "hyper_layer",
-                                        "type": "variable_if",
-                                        "value": 1
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "d",
-                                    "modifiers": { "optional": ["any"] }
-                                },
-                                "to": [
-                                    {
-                                        "halt": true,
-                                        "key_code": "right_arrow",
-                                        "modifiers": ["left_command", "left_option"]
-                                    }
-                                ],
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
-                        "description": "OG Home row mods - shift, ctrl, opt, cmd",
-                        "enabled": false,
                         "manipulators": [
                             {
                                 "from": {
