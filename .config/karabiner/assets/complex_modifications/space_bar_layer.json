@@ -1,55 +1,45 @@
 {
-  "title": "Spacebar tap = space, hold = layer",
+  "title": "Spacebar tap = space, hold = layer", 
   "rules": [
     {
-      "description": "Hold Space ≥ 200ms = layer; Tap = space; chord = space+key",
+      "description": "Hold Space ≥ 500ms = layer; Tap = space; chord = space+key",
       "enabled": false,
       "manipulators": [
 
-        // ─────────────────────────────────────────────────────
-        // Spacebar tap-hold logic:
-        // - Tap alone → prints space
-        // - Hold ≥ 500ms without other keys → activates layer
-        // - If chorded (another key pressed), prints space if allowed
-        // ─────────────────────────────────────────────────────
+        // ───────────────────────────────────────────────────────────────
+        // Spacebar → tap = space, hold ≥ 500ms = enter layer mode.
+        // Uses `space_printed` flag to decide if space should emit.
+        // Resets both space_layer and space_printed cleanly.
+        // ───────────────────────────────────────────────────────────────
         {
           "type": "basic",
           "from": {
             "key_code": "spacebar",
             "modifiers": { "optional": ["any"] }
           },
-
-          // Required to enable `to_after_key_up` behavior
+          "parameters": {
+            "basic.to_delayed_action_delay_milliseconds": 500,
+            "basic.to_if_alone_timeout_milliseconds": 250
+          },
           "to": [
-            // Set space_layer intent
             { "set_variable": { "name": "space_layer", "value": 1 } },
-            // Flag to indicate that spacebar should be printed if chorded
             { "set_variable": { "name": "space_printed", "value": 1 } }
           ],
-
-          // Fires when spacebar is released, always disables layer
           "to_after_key_up": [
             { "set_variable": { "name": "space_layer", "value": 0 } }
           ],
-
-          // If another key is pressed or space released early (< 500 ms)
           "to_delayed_action": {
             "to_if_canceled": [
-              // Reset layer (just in case)
               { "set_variable": { "name": "space_layer", "value": 0 } },
-              // Only emit spacebar if space_printed was 1
               {
                 "conditions": [
                   { "name": "space_printed", "type": "variable_if", "value": 1 }
                 ],
                 "key_code": "spacebar"
               },
-              // Clear the print flag
               { "set_variable": { "name": "space_printed", "value": 0 } }
             ]
           },
-
-          // Fires if spacebar was tapped alone (no other key)
           "to_if_alone": [
             {
               "conditions": [
@@ -58,31 +48,83 @@
               "key_code": "spacebar"
             },
             { "set_variable": { "name": "space_printed", "value": 0 } }
-          ],
-
-          // Tap and hold timing control
-          "parameters": {
-            "basic.to_delayed_action_delay_milliseconds": 500,
-            "basic.to_if_alone_timeout_milliseconds": 250
-          }
+          ]
         },
 
-        // ─────────────────────────────────────────────────────
-        // Layer mapping: E key becomes Up Arrow when layer is on
-        // ─────────────────────────────────────────────────────
+        // ───────────────────────────────────────────────────────────────
+        // Layered NAVIGATION keys: active only when space_layer == 1
+        // Directional movement on home row
+        // ───────────────────────────────────────────────────────────────
         {
           "type": "basic",
+          "from": { "key_code": "e", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "key_code": "up_arrow" } ],
           "conditions": [
-            { "name": "space_layer", "type": "variable_if", "value": 1 }
-          ],
-          "from": {
-            "key_code": "e",
-            "modifiers": { "optional": ["any"] }
-          },
-          "to": [{ "key_code": "up_arrow" }]
+            { "type": "variable_if", "name": "space_layer", "value": 1 }
+          ]
+        },
+        {
+          "type": "basic",
+          "from": { "key_code": "s", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "key_code": "left_arrow" } ],
+          "conditions": [
+            { "type": "variable_if", "name": "space_layer", "value": 1 }
+          ]
+        },
+        {
+          "type": "basic",
+          "from": { "key_code": "d", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "key_code": "down_arrow" } ],
+          "conditions": [
+            { "type": "variable_if", "name": "space_layer", "value": 1 }
+          ]
+        },
+        {
+          "type": "basic",
+          "from": { "key_code": "f", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "key_code": "right_arrow" } ],
+          "conditions": [
+            { "type": "variable_if", "name": "space_layer", "value": 1 }
+          ]
+        },
+
+        // ───────────────────────────────────────────────────────────────
+        // Layered MODIFIER keys: j/k/l/; map to right-side mods
+        // ───────────────────────────────────────────────────────────────
+        {
+          "type": "basic",
+          "from": { "key_code": "j", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "key_code": "right_command" } ],
+          "conditions": [
+            { "type": "variable_if", "name": "space_layer", "value": 1 }
+          ]
+        },
+        {
+          "type": "basic",
+          "from": { "key_code": "k", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "key_code": "right_option" } ],
+          "conditions": [
+            { "type": "variable_if", "name": "space_layer", "value": 1 }
+          ]
+        },
+        {
+          "type": "basic",
+          "from": { "key_code": "l", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "key_code": "right_control" } ],
+          "conditions": [
+            { "type": "variable_if", "name": "space_layer", "value": 1 }
+          ]
+        },
+        {
+          "type": "basic",
+          "from": { "key_code": "semicolon", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "key_code": "right_shift" } ],
+          "conditions": [
+            { "type": "variable_if", "name": "space_layer", "value": 1 }
+          ]
         }
 
-        // ➤ Add more mappings like f = left_arrow, d = right_arrow, etc.
+        // ➤ Add more layer keys (brackets, delete, page nav) as needed
       ]
     }
   ]
