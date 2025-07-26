@@ -4,7 +4,9 @@
 // │ Layer key   : Spacebar (hold ≥ 500 ms)                      │
 // │ Tap key     : Spacebar (tap ≤ 250 ms)                       │
 // │ Nav keys    : e ↑   s ←   d ↓   f →                         │
-// │ Modifiers   : j ⌘   k ⌥   l ⌃   ; ⇧                          │
+// │ Modifiers   : j ⌘   k ⌥   l ⌃   ; ⇧                         │
+// │ Remaps      : [ del w pg_up r pg_dn                         │
+// │ Combos      : . word_del                                    │
 // └─────────────────────────────────────────────────────────────┘
 {	
   "title": "Spacebar tap = space, hold = layer", 
@@ -130,9 +132,54 @@
           "conditions": [
             { "type": "variable_if", "name": "space_layer", "value": 1 }
           ]
-        }
+        },
 
-        // ➤ Add more layer keys (brackets, delete, page nav) as needed
+			  // Key remapping
+        // [ → delete_or_backspace
+        {
+          "type": "basic",
+          "from": { "key_code": "open_bracket", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "key_code": "delete_or_backspace" } ],
+          "conditions": [
+            { "type": "variable_if", "name": "space_layer", "value": 1 }
+          ]
+        },
+
+        // w → page_up
+        {
+          "type": "basic",
+          "from": { "key_code": "w", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "key_code": "page_up" } ],
+          "conditions": [
+            { "type": "variable_if", "name": "space_layer", "value": 1 }
+          ]
+        },
+
+        // r → page_down
+        {
+          "type": "basic",
+          "from": { "key_code": "r", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "key_code": "page_down" } ],
+          "conditions": [
+            { "type": "variable_if", "name": "space_layer", "value": 1 }
+          ]
+        },
+
+        // Combos
+        // . → word delete (⌥ + delete)
+        {
+          "type": "basic",
+          "from": { "key_code": "period", "modifiers": { "optional": ["any"] } },
+          "to":   [
+            {
+              "key_code": "delete_or_backspace",
+              "modifiers": [ "option" ]
+            }
+          ],
+          "conditions": [
+            { "type": "variable_if", "name": "space_layer", "value": 1 }
+          ]
+        }
       ]
     }
   ]
