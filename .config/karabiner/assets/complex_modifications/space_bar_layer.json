@@ -1,4 +1,12 @@
-{
+// ┌─────────────────────────────────────────────────────────────┐
+// │ Key Index (reserved by this rule set)                       │
+// ├─────────────────────────────────────────────────────────────┤
+// │ Layer key   : Spacebar (hold ≥ 500 ms)                      │
+// │ Tap key     : Spacebar (tap ≤ 250 ms)                       │
+// │ Nav keys    : e ↑   s ←   d ↓   f →                         │
+// │ Modifiers   : j ⌘   k ⌥   l ⌃   ; ⇧                          │
+// └─────────────────────────────────────────────────────────────┘
+{	
   "title": "Spacebar tap = space, hold = layer", 
   "rules": [
     {
