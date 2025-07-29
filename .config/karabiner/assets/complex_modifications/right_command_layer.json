@@ -74,15 +74,6 @@
             "modifiers": { "optional": [ "any" ] }
           },
           "to": [ { "key_code": "left_arrow" } ],
-
-          "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
-          "to_delayed_action": {
-            "to_if_invoked": [
-              { "set_variable": { "name": "nav_layer", "value": 0 } },
-              { "set_notification_message": { "id": "nav-layer", "text": "" } } // empty text = hide notif
-            ],
-            "to_if_canceled": []
-          },
           "type": "basic"
         }
 

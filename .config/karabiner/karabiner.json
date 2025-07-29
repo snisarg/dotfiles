@@ -676,25 +676,7 @@
                                     "key_code": "a",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "parameters": { "basic.to_delayed_action_delay_milliseconds": 10000 },
                                 "to": [{ "key_code": "left_arrow" }],
-                                "to_delayed_action": {
-                                    "to_if_canceled": [],
-                                    "to_if_invoked": [
-                                        {
-                                            "set_variable": {
-                                                "name": "nav_layer",
-                                                "value": 0
-                                            }
-                                        },
-                                        {
-                                            "set_notification_message": {
-                                                "id": "nav-layer",
-                                                "text": ""
-                                            }
-                                        }
-                                    ]
-                                },
                                 "type": "basic"
                             }
                         ]
