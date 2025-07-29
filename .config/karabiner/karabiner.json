@@ -213,7 +213,7 @@
                                     }
                                 ],
                                 "from": {
-                                    "key_code": "open_bracket",
+                                    "key_code": "quote",
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to": [{ "key_code": "delete_or_backspace" }],
@@ -433,7 +433,7 @@
                                     }
                                 ],
                                 "from": {
-                                    "key_code": "open_bracket",
+                                    "key_code": "quote",
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to": [{ "key_code": "delete_or_backspace" }],

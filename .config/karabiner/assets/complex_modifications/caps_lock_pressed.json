@@ -84,7 +84,7 @@
         // ===== Editing / symbols =====================================
         {
           "conditions": [ { "name": "caps_lock pressed", "type": "variable_if", "value": 1 } ],
-          "from": { "key_code": "open_bracket", "modifiers": { "optional": ["any"] } },
+          "from": { "key_code": "quote", "modifiers": { "optional": ["any"] } },
           "to":   [ { "key_code": "delete_or_backspace" } ],
           "type": "basic"
         },

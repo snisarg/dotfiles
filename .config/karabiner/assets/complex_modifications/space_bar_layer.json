@@ -138,7 +138,7 @@
         // [ → delete_or_backspace
         {
           "type": "basic",
-          "from": { "key_code": "open_bracket", "modifiers": { "optional": ["any"] } },
+          "from": { "key_code": "quote", "modifiers": { "optional": ["any"] } },
           "to":   [ { "key_code": "delete_or_backspace" } ],
           "conditions": [
             { "type": "variable_if", "name": "space_layer", "value": 1 }
