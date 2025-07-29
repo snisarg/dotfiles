@@ -3,7 +3,7 @@
 // ├─────────────────────────────────────────────────────────────┤
 // │ Layer key : right_command (tap toggles)                     │
 // │ Esc       : right_command (tap when layer OFF)              │
-// │ Nav       : w↑  s↓  a←  d→   q Pg↑  e Pg↓                  │
+// │ Nav       : e↑  d↓  s←  f→   q Pg↑  e Pg↓                  │
 // │ Mods      : j⌘  k⌥  l⌃  ;⇧                                 │
 // │ Brackets  : u {   i }   n [   m ]   o =   p +   [⌫         │
 // └─────────────────────────────────────────────────────────────┘
@@ -65,19 +65,57 @@
 
         /*───────────────────────────────────────────────────────────
           3 ▸ Example nav key (A → ←) with 10 s timeout
-             – duplicate / adapt for W S D Q E … as needed
         ───────────────────────────────────────────────────────────*/
         {
           "conditions": [ { "name": "nav_layer", "type": "variable_if", "value": 1 } ],
           "from": {
-            "key_code": "a",
+            "key_code": "s",
             "modifiers": { "optional": [ "any" ] }
           },
           "to": [ { "key_code": "left_arrow" } ],
           "type": "basic"
+        },
+        {
+          "conditions": [ { "name": "nav_layer", "type": "variable_if", "value": 1 } ],
+          "from": {
+            "key_code": "e",
+            "modifiers": { "optional": [ "any" ] }
+          },
+          "to": [ { "key_code": "up_arrow" } ],
+          "type": "basic"
+        },
+        {
+          "conditions": [ { "name": "nav_layer", "type": "variable_if", "value": 1 } ],
+          "from": {
+            "key_code": "d",
+            "modifiers": { "optional": [ "any" ] }
+          },
+          "to": [ { "key_code": "down_arrow" } ],
+          "type": "basic"
+        },
+        {
+          "conditions": [ { "name": "nav_layer", "type": "variable_if", "value": 1 } ],
+          "from": {
+            "key_code": "f",
+            "modifiers": { "optional": [ "any" ] }
+          },
+          "to": [ { "key_code": "right_arrow" } ],
+          "type": "basic"
+        },
+
+        /*───────────────────────────────────────────────────────────
+          4 ▸ Key Remappings
+        ───────────────────────────────────────────────────────────*/
+        {
+          "conditions": [ { "name": "nav_layer", "type": "variable_if", "value": 1 } ],
+          "from": {
+            "key_code": "quote",
+            "modifiers": { "optional": [ "any" ] }
+          },
+          "to": [ { "key_code": "delete_or_backspace" } ],
+          "type": "basic"
         }
 
-        /* ➜ replicate block 3 for s d w q e j k l ; … as needed */
       ]
     }
   ]
