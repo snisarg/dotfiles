@@ -114,6 +114,15 @@
           },
           "to": [ { "key_code": "delete_or_backspace" } ],
           "type": "basic"
+        },
+        {
+          "conditions": [ { "name": "nav_layer", "type": "variable_if", "value": 1 } ],
+          "from": {
+            "key_code": "open_bracket",
+            "modifiers": { "optional": [ "any" ] }
+          },
+          "to": [ { "key_code": "delete_or_backspace", "modifiers": [ "fn" ]} ],
+          "type": "basic"
         }
 
       ]
