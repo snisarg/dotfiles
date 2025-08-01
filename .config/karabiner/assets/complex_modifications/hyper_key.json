@@ -54,11 +54,26 @@
         // 3 ▸ App launchers
         //    (fire only when hyper_layer == 1)
         // ─────────────────────
-        { // Hyper-T ➜ Toggl Track
+
+        { // Hyper-B ➜ Safari
           "type": "basic",
-          "from": { "key_code": "t", "modifiers": { "optional": ["any"] } },
+          "from": { "key_code": "b", "modifiers": { "optional": ["any"] } },
           "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
-          "to": [ { "shell_command": "open -a 'Toggl Track'", "halt": true } ]
+          "to": [ { "shell_command": "open -a 'Safari'", "halt": true } ]
+        },
+
+        { // Hyper-C ➜ Calendar
+          "type": "basic",
+          "from": { "key_code": "c", "modifiers": { "optional": ["any"] } },
+          "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
+          "to": [ { "shell_command": "open -a 'Calendar'", "halt": true } ]
+        },
+
+        { // Hyper-F ➜ Sheets (Food & Health)
+          "type": "basic",
+          "from": { "key_code": "f", "modifiers": { "optional": ["any"] } },
+          "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
+          "to": [ { "shell_command": "open '/Users/snisarg/Applications/Food & Health - Google Sheets.app' || open '/Users/snisarg/Applications/Chrome Apps.localized/Sheets.app'", "halt": true } ]
         },
 
         { // Hyper-I ➜ iTerm
@@ -75,39 +90,11 @@
           "to": [ { "shell_command": "open '/Users/snisarg/Applications/Keep.app'", "halt": true } ]
         },
 
-        { // Hyper-F ➜ Sheets (Food & Health)
-          "type": "basic",
-          "from": { "key_code": "f", "modifiers": { "optional": ["any"] } },
-          "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
-          "to": [ { "shell_command": "open '/Users/snisarg/Applications/Food & Health - Google Sheets.app' || open '/Users/snisarg/Applications/Chrome Apps.localized/Sheets.app'", "halt": true } ]
-        },
-
         { // Hyper-L ➜ Google Docs
           "type": "basic",
           "from": { "key_code": "l", "modifiers": { "optional": ["any"] } },
           "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
           "to": [ { "shell_command": "open /Users/snisarg/Applications/Google\\ Docs.app || open /Users/snisarg/Applications/Chrome\\ Apps.localized/Docs.app", "halt": true } ]
-        },
-
-        { // Hyper-O ➜ OneNote
-          "type": "basic",
-          "from": { "key_code": "o", "modifiers": { "optional": ["any"] } },
-          "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
-          "to": [ { "shell_command": "open -a 'Microsoft OneNote'", "halt": true } ]
-        },
-
-        { // Hyper-C ➜ Calendar
-          "type": "basic",
-          "from": { "key_code": "c", "modifiers": { "optional": ["any"] } },
-          "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
-          "to": [ { "shell_command": "open -a 'Calendar'", "halt": true } ]
-        },
-
-        { // Hyper-B ➜ Safari
-          "type": "basic",
-          "from": { "key_code": "b", "modifiers": { "optional": ["any"] } },
-          "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
-          "to": [ { "shell_command": "open -a 'Safari'", "halt": true } ]
         },
 
         { // Hyper-N ➜ Notion
@@ -117,32 +104,53 @@
           "to": [ { "shell_command": "open -a 'Notion'", "halt": true } ]
         },
 
+        { // Hyper-O ➜ OneNote
+          "type": "basic",
+          "from": { "key_code": "o", "modifiers": { "optional": ["any"] } },
+          "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
+          "to": [ { "shell_command": "open -a 'Microsoft OneNote'", "halt": true } ]
+        },
+
+        { // Hyper-S ➜ Slack
+          "type": "basic",
+          "from": { "key_code": "s", "modifiers": { "optional": ["any"] } },
+          "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
+          "to": [ { "shell_command": "open -a 'Slack'", "halt": true } ]
+        },
+
+        { // Hyper-T ➜ Toggl Track
+          "type": "basic",
+          "from": { "key_code": "t", "modifiers": { "optional": ["any"] } },
+          "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
+          "to": [ { "shell_command": "open -a 'Toggl Track'", "halt": true } ]
+        },
+
         // ─────────────────────
         // 4 ▸ Window management helpers
         //    (⌥⌘ + arrows shortcuts)
         // ─────────────────────
-        { // Hyper-W ➜ maximise
+        { // Hyper-W ➜ Up tab move
           "type": "basic",
           "from": { "key_code": "w", "modifiers": { "optional": ["any"] } },
           "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
           "to": [ { "key_code": "up_arrow", "modifiers": ["left_command", "left_option"], "halt": true } ]
         },
 
-        { // Hyper-A ➜ left half
+        { // Hyper-A ➜ left tab move
           "type": "basic",
           "from": { "key_code": "a", "modifiers": { "optional": ["any"] } },
           "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
           "to": [ { "key_code": "left_arrow", "modifiers": ["left_command", "left_option"], "halt": true } ]
         },
 
-        { // Hyper-S ➜ bottom half
+        { // Hyper-S ➜ Down tab move
           "type": "basic",
           "from": { "key_code": "s", "modifiers": { "optional": ["any"] } },
           "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
           "to": [ { "key_code": "down_arrow", "modifiers": ["left_command", "left_option"], "halt": true } ]
         },
 
-        { // Hyper-D ➜ right half
+        { // Hyper-D ➜ Right tab move
           "type": "basic",
           "from": { "key_code": "d", "modifiers": { "optional": ["any"] } },
           "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
