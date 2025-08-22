@@ -81,7 +81,7 @@
           "type": "basic"
         },
 
-        // ===== Editing / symbols =====================================
+        // ===== Delete variations =====================================
         {
           "conditions": [ { "name": "caps_lock pressed", "type": "variable_if", "value": 1 } ],
           "from": { "key_code": "quote", "modifiers": { "optional": ["any"] } },
@@ -97,6 +97,13 @@
         {
           "conditions": [ { "name": "caps_lock pressed", "type": "variable_if", "value": 1 } ],
           "from": { "key_code": "open_bracket", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "key_code": "delete_or_backspace", "modifiers": ["fn"] } ],
+          "type": "basic"
+        },
+        // Also adding backslack for delete forward for Sofle keyboard
+        {
+          "conditions": [ { "name": "caps_lock pressed", "type": "variable_if", "value": 1 } ],
+          "from": { "key_code": "backslash", "modifiers": { "optional": ["any"] } },
           "to":   [ { "key_code": "delete_or_backspace", "modifiers": ["fn"] } ],
           "type": "basic"
         },
@@ -152,4 +159,3 @@
     }
   ]
 }
-
