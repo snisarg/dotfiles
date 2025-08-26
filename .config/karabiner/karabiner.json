@@ -468,7 +468,7 @@
                                     }
                                 ],
                                 "from": {
-                                    "key_code": "period",
+                                    "key_code": "slash",
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "to": [
