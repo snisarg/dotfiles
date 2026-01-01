@@ -25,10 +25,10 @@
             { "type": "frontmost_application_if", "bundle_identifiers": ["^"] }
           ],
           "parameters": {
-            // ≤250 ms counts as a *tap*
-            "basic.to_if_alone_timeout_milliseconds": 250,
-            // ≥170 ms counts as a *hold*
-            "basic.to_if_held_down_threshold_milliseconds": 170
+            // ≤300 ms counts as a *tap*
+            "basic.to_if_alone_timeout_milliseconds": 300,
+            // ≥300 ms counts as a *hold*
+            "basic.to_if_held_down_threshold_milliseconds": 300
           }
         },
 
@@ -133,4 +133,3 @@
     }
   ] /* rules */
 }
-
