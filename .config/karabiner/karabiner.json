@@ -945,6 +945,7 @@
                     },
                     {
                         "description": "Hold right_command for nav layer, 10s auto-off",
+                        "enabled": false,
                         "manipulators": [
                             {
                                 "conditions": [
@@ -1908,7 +1909,7 @@
                                 ],
                                 "parameters": {
                                     "basic.to_if_alone_timeout_milliseconds": 250,
-                                    "basic.to_if_held_down_threshold_milliseconds": 170
+                                    "basic.to_if_held_down_threshold_milliseconds": 570
                                 },
                                 "type": "basic"
                             },

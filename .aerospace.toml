@@ -8,6 +8,10 @@ after-startup-command = []
 # Start AeroSpace at login
 start-at-login = true 
 
+# Let's retain normal window positioning for now
+# [[on-window-detected]]
+# run = 'layout floating'   # apply to every new window
+
 # Normalizations. See: https://nikitabobko.github.io/AeroSpace/guide#normalization
 enable-normalization-flatten-containers = true
 enable-normalization-opposite-orientation-for-nested-containers = true
@@ -184,6 +188,9 @@ automatically-unhide-macos-hidden-apps = false
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#mode
     alt-shift-semicolon = 'mode service'
+
+		alt-right = 'focus dfs-next --boundaries-action wrap-around-the-workspace'
+    alt-left  = 'focus dfs-prev  --boundaries-action wrap-around-the-workspace'
 
 # 'service' binding mode declaration.
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes

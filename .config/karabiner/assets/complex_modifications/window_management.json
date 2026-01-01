@@ -1,0 +1,31 @@
+{
+  "title": "Window Management Shortcuts",
+  "rules": [
+    {
+      "description": "Window management using Yabai or Aerospace",
+      "manipulators": [
+
+        // ───────────────────────────────────────────────────────────────
+        // Shortcut: Command (⌘) + Escape → run shell script ~/a.sh
+        // Use case: Launch external tool, toggle setting, etc.
+        // ───────────────────────────────────────────────────────────────
+        {
+          "type": "basic",
+          "from": {
+            "key_code": "escape",
+            "modifiers": {
+              "mandatory": [ "left_command" ],
+              "optional": [ "any" ]
+            }
+          },
+          "to": [
+            {
+              "shell_command": "~/.config/yabai/cycle.sh"
+            }
+          ]
+        }
+
+      ]
+    }
+  ]
+}
