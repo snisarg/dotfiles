@@ -5,8 +5,7 @@
   // │ Tap → Digit / Symbol                        │
   // │ Hold → F-key                                │
   // │                                             │
-  // │ 1 2 3 4 5 6 7 8 9 0 hyphen (-) p            │
-  // │ Commented: grave_accent_and_tilde (` ~)     │
+  // │ 1 2 3 4 5 6 7 8 9 0 hyphen (-) ` (backtick) │
   // └─────────────────────────────────────────────┘
 
   "title": "Number-row dual-role → digit tap / F-key hold",
@@ -27,8 +26,8 @@
           "parameters": {
             // ≤300 ms counts as a *tap*
             "basic.to_if_alone_timeout_milliseconds": 300,
-            // ≥300 ms counts as a *hold*
-            "basic.to_if_held_down_threshold_milliseconds": 300
+            // ≥1200 ms counts as a *hold*
+            "basic.to_if_held_down_threshold_milliseconds": 1200
           }
         },
 
@@ -115,19 +114,12 @@
           "to_if_held_down": [ { "key_code": "f11", "halt": true } ]
         },
 
-        // p  → F12
-        { "type": "basic", "from": { "key_code": "p", "modifiers": { "optional": ["any"] } },
-          "to_delayed_action": { "to_if_canceled": [{ "key_code": "p" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
-          "to_if_alone": [ { "key_code": "p", "halt": true } ],
+        // `  → F12
+        { "type": "basic", "from": { "key_code": "grave_accent_and_tilde", "modifiers": { "optional": ["any"] } },
+          "to_delayed_action": { "to_if_canceled": [{ "key_code": "grave_accent_and_tilde" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
+          "to_if_alone": [ { "key_code": "grave_accent_and_tilde", "halt": true } ],
           "to_if_held_down": [ { "key_code": "f12", "halt": true } ]
-        } // ,
-
-        // `  → F13  (shares F12 if you prefer)
-        // { "type": "basic", "from": { "key_code": "grave_accent_and_tilde", "modifiers": { "optional": ["any"] } },
-        //  "to_delayed_action": { "to_if_canceled": [{ "key_code": "grave_accent_and_tilde" }], "to_if_invoked": [{ "key_code": "vk_none" }] },
-        //  "to_if_alone": [ { "key_code": "grave_accent_and_tilde", "halt": true } ],
-        //  "to_if_held_down": [ { "key_code": "f12", "halt": true } ]
-        // }
+        }
 
       ] /* manipulators */
     }
