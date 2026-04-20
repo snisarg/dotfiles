@@ -8,11 +8,11 @@
 // │ Remaps      : [ del w pg_up r pg_dn                         │
 // │ Combos      : . word_del                                    │
 // └─────────────────────────────────────────────────────────────┘
-{	
-  "title": "Spacebar tap = space, hold = layer", 
+{
+  "title": "Space Layer: Nav (ESDF) + Mods (JKL;) + Deletes",
   "rules": [
     {
-      "description": "Hold Space ≥ 500ms = layer; Tap = space; chord = space+key",
+      "description": "Tap Space=space, hold ≥500ms=layer. Nav: E=↑, S=←, D=↓, F=→. Mods: J=⌘, K=⌥, L=⌃, ;=⇧. Delete: '=⌫, .=word-del, [=del-forward. Page: W=PgUp, R=PgDn.",
       "enabled": false,
       "manipulators": [
 

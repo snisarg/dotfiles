@@ -6,12 +6,12 @@
   // │ Window mgmt : w a s d                                │
   // └──────────────────────────────────────────────────────┘
 
-  "title": "Hyper layer on Tab + launcher shortcuts",
+  "title": "Tab Layer: App Launchers (TIKFOLCBN) + Window Nav (WASD)",
 
   "rules": [
     {
       // One rule file so it appears as a single toggle in the GUI
-      "description": "Tab toggles a Hyper layer; inside the layer, letters launch apps or window-manage.",
+      "description": "Hold Tab for Hyper layer. Launch apps: T=Toggl, I=iTerm, K=Keep, F=Sheets, O=OneNote, L=Docs, C=Calendar, B=Safari, N=Notion. Navigate: W=↑, A=←, S=↓, D=→ (tab movement).",
 
       "manipulators": [
 

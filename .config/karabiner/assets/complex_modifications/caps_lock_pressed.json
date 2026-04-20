@@ -11,10 +11,10 @@
 // └───────────────────────────────────────────────────────┘
 
 {
-  "title": "Caps-Lock hold = Nav/Mod layer",
+  "title": "Caps Lock Layer: Nav (WASDQE) + Mods (JKL;) + Symbols",
   "rules": [
     {
-      "description": "Hold CAPS LOCK for layer 1, Esc otherwise",
+      "description": "Tap Caps=Esc, hold=layer. Nav: W=↑, A=←, S=↓, D=→, Q=PgUp, E=PgDn. Mods: J=⌘, K=⌥, L=⌃, ;=⇧. Delete: '=⌫, /=word-del, [=del-fwd, \\=del-fwd. Symbols: U={, I=}, N=[, M=], O==, P=+.",
 
       "manipulators": [
 
@@ -149,7 +149,6 @@
 
         // ===== Layer toggle (Caps Lock) ===============================
         {
-          "parameters": { "basic.to_if_alone_timeout_milliseconds": 500 },
           "from": { "key_code": "caps_lock", "modifiers": { "optional": ["any"] } },
           "to":   [ { "set_variable": { "name": "caps_lock pressed", "value": 1 } } ],
           "to_after_key_up": [ { "set_variable": { "name": "caps_lock pressed", "value": 0 } } ],

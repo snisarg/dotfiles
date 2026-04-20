@@ -10,10 +10,10 @@
 // └──────────────────────────────────────────────┘
 
 {
-  "title": "Home-row mods – shift / ctrl / opt / cmd",
+  "title": "Home Row Mods: ASDF (⇧⌃⌥⌘) + JKL; (⌘⌥⌃⇧)",
   "rules": [
     {
-      "description": "Home row mods - shift, ctrl, opt, cmd",
+      "description": "Tap for letters, hold for modifiers. Left: A=⇧, S=⌃, D=⌥, F=⌘. Right: J=⌘, K=⌥, L=⌃, ;=⇧. Supports 2/3/4-key chords for combos.",
       "manipulators": [
 
         // ========== LEFT-HAND 4- & 3-KEY CHORDS ==========

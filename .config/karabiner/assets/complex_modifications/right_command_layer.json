@@ -9,10 +9,10 @@
 // └─────────────────────────────────────────────────────────────┘
 
 {
-  "title": "Right-Command toggles nav layer; auto-off after 10 s",
+  "title": "Right Cmd Layer: Nav (ESDF) + Mods (JKL;) [10s auto-off]",
   "rules": [
     {
-      "description": "Hold right_command for nav layer, 10s auto-off",
+      "description": "Tap Right Cmd to toggle layer (10s timeout). Nav: E=↑, S=←, D=↓, F=→. Mods: J=⌘, K=⌥, L=⌃, ;=⇧. Delete: '=⌫, [=del-forward.",
       "enabled": false,
 
       "manipulators": [

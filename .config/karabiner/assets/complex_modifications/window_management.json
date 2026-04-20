@@ -1,8 +1,8 @@
 {
-  "title": "Window Management Shortcuts",
+  "title": "Window Management: Cmd+Esc (Yabai/Aerospace)",
   "rules": [
     {
-      "description": "Window management using Yabai or Aerospace",
+      "description": "Cmd+Esc triggers ~/.config/yabai/cycle.sh for window management via Yabai or Aerospace.",
       "manipulators": [
 
         // ───────────────────────────────────────────────────────────────
