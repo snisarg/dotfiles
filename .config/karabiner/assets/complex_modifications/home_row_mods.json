@@ -10,7 +10,7 @@
 // └──────────────────────────────────────────────┘
 
 {
-  "title": "Home Row Mods: ASDF (⇧⌃⌥⌘) + JKL; (⌘⌥⌃⇧)",
+  "title": "Home Row Mods",
   "rules": [
     {
       "description": "Tap for letters, hold for modifiers. Left: A=⇧, S=⌃, D=⌥, F=⌘. Right: J=⌘, K=⌥, L=⌃, ;=⇧. Supports 2/3/4-key chords for combos.",

@@ -8,7 +8,7 @@
 // │ Clicks     : j left-click  l right-click                    │
 // └─────────────────────────────────────────────────────────────┘
 {
-  "title": "Enter Mouse Layer: ESDF move, J/L click, W/R scroll",
+  "title": "Enter Mouse Layer",
   "rules": [
     {
       "description": "Hold Enter = mouse layer. ESDF=cursor, W=scroll↑, R=scroll↓, J=left-click, L=right-click. Tap alone = Return.",

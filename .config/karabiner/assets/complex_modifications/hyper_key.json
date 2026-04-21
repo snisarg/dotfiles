@@ -6,7 +6,7 @@
   // │ Window mgmt : w a s d                                │
   // └──────────────────────────────────────────────────────┘
 
-  "title": "Tab Layer: App Launchers (TIKFOLCBN) + Window Nav (WASD)",
+  "title": "Tab Layer",
 
   "rules": [
     {

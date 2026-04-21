@@ -11,7 +11,7 @@
 // └───────────────────────────────────────────────────────┘
 
 {
-  "title": "Caps Lock Layer: Nav (WASDQE) + Mods (JKL;) + Symbols",
+  "title": "Caps Lock Layer",
   "rules": [
     {
       "description": "Tap Caps=Esc, hold=layer. Nav: W=↑, A=←, S=↓, D=→, Q=PgUp, E=PgDn. Mods: J=⌘, K=⌥, L=⌃, ;=⇧. Delete: '=⌫, /=word-del, [=del-fwd, \\=del-fwd. Symbols: U={, I=}, N=[, M=], O==, P=+.",

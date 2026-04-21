@@ -9,7 +9,7 @@
 // │ Combos      : . word_del                                    │
 // └─────────────────────────────────────────────────────────────┘
 {
-  "title": "Space Layer: Nav (ESDF) + Mods (JKL;) + Deletes",
+  "title": "Space Bar Layer",
   "rules": [
     {
       "description": "Tap Space=space, hold ≥500ms=layer. Nav: E=↑, S=←, D=↓, F=→. Mods: J=⌘, K=⌥, L=⌃, ;=⇧. Delete: '=⌫, .=word-del, [=del-forward. Page: W=PgUp, R=PgDn.",

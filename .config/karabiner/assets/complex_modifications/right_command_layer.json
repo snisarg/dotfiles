@@ -9,7 +9,7 @@
 // └─────────────────────────────────────────────────────────────┘
 
 {
-  "title": "Right Cmd Layer: Nav (ESDF) + Mods (JKL;) [10s auto-off]",
+  "title": "Right Command Layer",
   "rules": [
     {
       "description": "Tap Right Cmd to toggle layer (10s timeout). Nav: E=↑, S=←, D=↓, F=→. Mods: J=⌘, K=⌥, L=⌃, ;=⇧. Delete: '=⌫, [=del-forward.",

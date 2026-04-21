@@ -1,5 +1,5 @@
 {
-  "title": "Window Management: Cmd+Esc (Yabai/Aerospace)",
+  "title": "Window Management",
   "rules": [
     {
       "description": "Cmd+Esc triggers ~/.config/yabai/cycle.sh for window management via Yabai or Aerospace.",
