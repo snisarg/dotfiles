@@ -1,0 +1,68 @@
+// ┌─────────────────────────────────────────────────────────────┐
+// │ Key Index (reserved by this rule set)                       │
+// ├─────────────────────────────────────────────────────────────┤
+// │ Layer key  : Enter (hold ≥ 500 ms)                          │
+// │ Tap key    : Return (tap ≤ 250 ms)                          │
+// │ Mouse move : e ↑  s ←  d ↓  f →                            │
+// │ Scroll     : w ↑  r ↓                                       │
+// │ Clicks     : j left-click  l right-click                    │
+// └─────────────────────────────────────────────────────────────┘
+{
+  "title": "Enter Mouse Layer: ESDF move, J/L click, W/R scroll",
+  "rules": [
+    {
+      "description": "Hold Enter = mouse layer. ESDF=cursor, W=scroll↑, R=scroll↓, J=left-click, L=right-click. Tap alone = Return.",
+      "manipulators": [
+
+        // Enter: tap = return, hold ≥ 500ms = mouse layer
+        {
+          "type": "basic",
+          "from": { "key_code": "return_or_enter", "modifiers": { "optional": ["any"] } },
+          "parameters": {
+            "basic.to_delayed_action_delay_milliseconds": 500,
+            "basic.to_if_alone_timeout_milliseconds": 250
+          },
+          "to": [
+            { "set_variable": { "name": "enter_mouse_layer", "value": 1 } },
+            { "set_variable": { "name": "enter_printed", "value": 1 } }
+          ],
+          "to_after_key_up": [
+            { "set_variable": { "name": "enter_mouse_layer", "value": 0 } }
+          ],
+          "to_delayed_action": {
+            "to_if_canceled": [
+              { "set_variable": { "name": "enter_mouse_layer", "value": 0 } },
+              {
+                "conditions": [{ "name": "enter_printed", "type": "variable_if", "value": 1 }],
+                "key_code": "return_or_enter"
+              },
+              { "set_variable": { "name": "enter_printed", "value": 0 } }
+            ]
+          },
+          "to_if_alone": [
+            {
+              "conditions": [{ "name": "enter_printed", "type": "variable_if", "value": 1 }],
+              "key_code": "return_or_enter"
+            },
+            { "set_variable": { "name": "enter_printed", "value": 0 } }
+          ]
+        },
+
+        // Mouse movement — ESDF
+        { "type": "basic", "from": { "key_code": "e", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "y": -1536 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
+        { "type": "basic", "from": { "key_code": "s", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "x": -1536 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
+        { "type": "basic", "from": { "key_code": "d", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "y": 1536 } }],  "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
+        { "type": "basic", "from": { "key_code": "f", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "x": 1536 } }],  "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
+
+        // Scroll — W/R
+        { "type": "basic", "from": { "key_code": "w", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "vertical_wheel": -32 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
+        { "type": "basic", "from": { "key_code": "r", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "vertical_wheel": 32 } }],  "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
+
+        // Clicks — J (left) / L (right)
+        { "type": "basic", "from": { "key_code": "j", "modifiers": { "optional": ["any"] } }, "to": [{ "pointing_button": "button1" }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
+        { "type": "basic", "from": { "key_code": "l", "modifiers": { "optional": ["any"] } }, "to": [{ "pointing_button": "button2" }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] }
+
+      ]
+    }
+  ]
+}
