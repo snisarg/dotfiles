@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# copy_here.sh — pull dotfiles from home directory into repo
-# Usage: ./copy_here.sh [--dry-run|-n] <app...>|all
+# sync_in.sh — pull dotfiles from home directory into repo
+# Usage: ./sync_in.sh [--dry-run|-n] <app...>|all
 # Run from repo root.
 
 set -euo pipefail
@@ -34,7 +34,7 @@ usage() {
   exit 1
 }
 
-[[ -f copy_here.sh ]] || { echo "Error: run from repo root"; exit 1; }
+[[ -f sync_in.sh ]] || { echo "Error: run from repo root"; exit 1; }
 
 [[ $# -eq 0 ]] && usage
 

@@ -35,7 +35,7 @@ usage() {
 }
 
 # Must run from repo root
-[[ -f copy_here.sh ]] || { echo "Error: run from repo root"; exit 1; }
+[[ -f sync_out.sh ]] || { echo "Error: run from repo root"; exit 1; }
 
 [[ $# -eq 0 ]] && usage
 
