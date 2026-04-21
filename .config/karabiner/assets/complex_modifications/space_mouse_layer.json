@@ -4,14 +4,14 @@
 // │ Layer key  : Spacebar (hold ≥ 500 ms)                       │
 // │ Tap key    : Spacebar (tap ≤ 250 ms)                        │
 // │ Mouse move : e ↑  s ←  d ↓  f →                            │
-// │ Scroll     : w ↑  r ↓                                       │
+// │ Scroll     : i ↑  k ↓  u ←  o →                            │
 // │ Clicks     : j left-click  l right-click                    │
 // └─────────────────────────────────────────────────────────────┘
 {
   "title": "Space Mouse Layer",
   "rules": [
     {
-      "description": "Hold Spacebar = mouse layer. ESDF=cursor, W=scroll↑, R=scroll↓, J=left-click, L=right-click. Tap alone = Space.",
+      "description": "Hold Spacebar = mouse layer. ESDF=cursor, I=scroll↑, K=scroll↓, U=scroll←, O=scroll→, J=left-click, L=right-click. Tap alone = Space.",
       "manipulators": [
 
         // Spacebar: tap = space, hold ≥ 500ms = mouse layer
@@ -54,7 +54,11 @@
         { "type": "basic", "from": { "key_code": "d", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "y": 1536 } }],  "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
         { "type": "basic", "from": { "key_code": "f", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "x": 1536 } }],  "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
 
-        // Scroll — W/R
+        // Scroll — I/K (up/down), U/O (left/right)
+        { "type": "basic", "from": { "key_code": "i", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "vertical_wheel": -32 } }],   "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
+        { "type": "basic", "from": { "key_code": "k", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "vertical_wheel": 32 } }],    "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
+        { "type": "basic", "from": { "key_code": "u", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "horizontal_wheel": -32 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
+        { "type": "basic", "from": { "key_code": "o", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "horizontal_wheel": 32 } }],  "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
         { "type": "basic", "from": { "key_code": "w", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "vertical_wheel": -32 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
         { "type": "basic", "from": { "key_code": "r", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "vertical_wheel": 32 } }],  "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
 
