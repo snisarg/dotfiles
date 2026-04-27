@@ -59,8 +59,8 @@
         { "type": "basic", "from": { "key_code": "k", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "vertical_wheel": 32 } }],    "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
         { "type": "basic", "from": { "key_code": "u", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "horizontal_wheel": -32 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
         { "type": "basic", "from": { "key_code": "o", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "horizontal_wheel": 32 } }],  "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
-        { "type": "basic", "from": { "key_code": "w", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "vertical_wheel": -32 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
-        { "type": "basic", "from": { "key_code": "r", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "vertical_wheel": 32 } }],  "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
+        { "type": "basic", "from": { "key_code": "w", "modifiers": { "optional": ["any"] } }, "to": [{ "key_code": "page_up" }],                       "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
+        { "type": "basic", "from": { "key_code": "r", "modifiers": { "optional": ["any"] } }, "to": [{ "key_code": "page_down" }],                     "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
 
         // Clicks — J (left) / L (right)
         { "type": "basic", "from": { "key_code": "j", "modifiers": { "optional": ["any"] } }, "to": [{ "pointing_button": "button1" }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
