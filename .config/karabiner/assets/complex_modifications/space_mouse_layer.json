@@ -1,7 +1,7 @@
 // ┌─────────────────────────────────────────────────────────────┐
 // │ Key Index (reserved by this rule set)                       │
 // ├─────────────────────────────────────────────────────────────┤
-// │ Layer key  : Spacebar (hold ≥ 500 ms)                       │
+// │ Layer key  : Spacebar (hold ≥ 350 ms)                       │
 // │ Tap key    : Spacebar (tap ≤ 250 ms)                        │
 // │ Mouse move : e ↑  s ←  d ↓  f →   (hold ; for 3x speed)   │
 // │ Scroll     : i ↑  k ↓  u ←  o →   (hold ; for 3x speed)   │
@@ -19,7 +19,7 @@
           "type": "basic",
           "from": { "key_code": "spacebar", "modifiers": { "optional": ["any"] } },
           "parameters": {
-            "basic.to_delayed_action_delay_milliseconds": 500,
+            "basic.to_delayed_action_delay_milliseconds": 350,
             "basic.to_if_alone_timeout_milliseconds": 250
           },
           "to": [
