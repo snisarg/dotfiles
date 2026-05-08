@@ -5,6 +5,7 @@
 // │ Esc key    : Caps Lock (tap)                          │
 // │ Nav keys   : w ↑  s ↓  a ←  d →  q Pg↑  e Pg↓         │
 // │ Mods       : j ⌘  k ⌥  l ⌃  ; ⇧                       │
+// │ Mouse      : h left-click  y right-click              │
 // │ Brackets   : u {   i }   n [   m ]                    │
 // │ Deletes    : ' del  { or \ del forward   / word del   │
 // │ Other      : [ ⌫   o =   p +                          │
@@ -79,6 +80,20 @@
           "conditions": [ { "name": "caps_lock pressed", "type": "variable_if", "value": 1 } ],
           "from": { "key_code": "semicolon", "modifiers": { "optional": ["any"] } },
           "to":   [ { "key_code": "right_shift" } ],
+          "type": "basic"
+        },
+
+        // ===== Mouse buttons ==========================================
+        {
+          "conditions": [ { "name": "caps_lock pressed", "type": "variable_if", "value": 1 } ],
+          "from": { "key_code": "h", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "pointing_button": "button1" } ],
+          "type": "basic"
+        },
+        {
+          "conditions": [ { "name": "caps_lock pressed", "type": "variable_if", "value": 1 } ],
+          "from": { "key_code": "y", "modifiers": { "optional": ["any"] } },
+          "to":   [ { "pointing_button": "button2" } ],
           "type": "basic"
         },
 
