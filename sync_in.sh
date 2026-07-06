@@ -17,8 +17,9 @@ run() {
 }
 
 copy_karabiner() {
-  run cp ~/.config/karabiner/karabiner.json .config/karabiner/karabiner.json
-  run cp -R ~/.config/karabiner/assets/ .config/karabiner/assets/
+  run mkdir -p .config/karabiner/assets
+  run rsync -a --delete ~/.config/karabiner/karabiner.json .config/karabiner/karabiner.json
+  run rsync -a --delete ~/.config/karabiner/assets/ .config/karabiner/assets/
 }
 
 copy_zsh()       { run cp ~/.zshrc .zshrc; }
