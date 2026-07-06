@@ -1152,7 +1152,7 @@
                         ]
                     },
                     {
-                        "description": "Tab toggles a Hyper layer; inside the layer, letters launch apps or window-manage.",
+                        "description": "Hold Tab for Hyper layer. Launch apps: T=Toggl, I=iTerm, K=Keep, F=Sheets, O=OneNote, L=Docs, C=Calendar, B=Safari, N=Notion. Navigate: W=↑, A=←, S=↓, D=→ (tab movement).",
                         "manipulators": [
                             {
                                 "from": {
@@ -1335,7 +1335,7 @@
                                 "to": [
                                     {
                                         "halt": true,
-                                        "shell_command": "open /Users/snisarg/Applications/Google\\ Docs.app || open /Users/snisarg/Applications/Chrome\\ Apps.localized/Docs.app"
+                                        "shell_command": "open -a 'Obsidian'"
                                     }
                                 ],
                                 "type": "basic"
