@@ -2225,12 +2225,15 @@
                         ]
                     },
                     {
-                        "description": "Tap for letter, hold for symbol. N=[, M=], U={, I=}, O==, P=+. Works alongside other held modifiers, e.g. cmd+hold-m = cmd+].",
+                        "description": "Tap for letter, hold (400ms) for symbol/nav. N=[, M=], U={, I=}, O==, P=+, Q=PgUp, E=PgDn. Works alongside other held modifiers, e.g. cmd+hold-m = cmd+].",
                         "manipulators": [
                             {
                                 "from": {
                                     "key_code": "n",
                                     "modifiers": { "optional": ["any"] }
+                                },
+                                "parameters": {
+                                    "basic.to_if_held_down_threshold_milliseconds": 400
                                 },
                                 "to_delayed_action": {
                                     "to_if_canceled": [{ "key_code": "n" }],
@@ -2255,6 +2258,9 @@
                                     "key_code": "m",
                                     "modifiers": { "optional": ["any"] }
                                 },
+                                "parameters": {
+                                    "basic.to_if_held_down_threshold_milliseconds": 400
+                                },
                                 "to_delayed_action": {
                                     "to_if_canceled": [{ "key_code": "m" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
@@ -2277,6 +2283,9 @@
                                 "from": {
                                     "key_code": "u",
                                     "modifiers": { "optional": ["any"] }
+                                },
+                                "parameters": {
+                                    "basic.to_if_held_down_threshold_milliseconds": 400
                                 },
                                 "to_delayed_action": {
                                     "to_if_canceled": [{ "key_code": "u" }],
@@ -2302,6 +2311,9 @@
                                     "key_code": "i",
                                     "modifiers": { "optional": ["any"] }
                                 },
+                                "parameters": {
+                                    "basic.to_if_held_down_threshold_milliseconds": 400
+                                },
                                 "to_delayed_action": {
                                     "to_if_canceled": [{ "key_code": "i" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
@@ -2326,6 +2338,9 @@
                                     "key_code": "o",
                                     "modifiers": { "optional": ["any"] }
                                 },
+                                "parameters": {
+                                    "basic.to_if_held_down_threshold_milliseconds": 400
+                                },
                                 "to_delayed_action": {
                                     "to_if_canceled": [{ "key_code": "o" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
@@ -2349,6 +2364,9 @@
                                     "key_code": "p",
                                     "modifiers": { "optional": ["any"] }
                                 },
+                                "parameters": {
+                                    "basic.to_if_held_down_threshold_milliseconds": 400
+                                },
                                 "to_delayed_action": {
                                     "to_if_canceled": [{ "key_code": "p" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
@@ -2364,6 +2382,58 @@
                                         "halt": true,
                                         "key_code": "equal_sign",
                                         "modifiers": ["right_shift"]
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "q",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "parameters": {
+                                    "basic.to_if_held_down_threshold_milliseconds": 400
+                                },
+                                "to_delayed_action": {
+                                    "to_if_canceled": [{ "key_code": "q" }],
+                                    "to_if_invoked": [{ "key_code": "vk_none" }]
+                                },
+                                "to_if_alone": [
+                                    {
+                                        "halt": true,
+                                        "key_code": "q"
+                                    }
+                                ],
+                                "to_if_held_down": [
+                                    {
+                                        "halt": true,
+                                        "key_code": "page_up"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "e",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "parameters": {
+                                    "basic.to_if_held_down_threshold_milliseconds": 400
+                                },
+                                "to_delayed_action": {
+                                    "to_if_canceled": [{ "key_code": "e" }],
+                                    "to_if_invoked": [{ "key_code": "vk_none" }]
+                                },
+                                "to_if_alone": [
+                                    {
+                                        "halt": true,
+                                        "key_code": "e"
+                                    }
+                                ],
+                                "to_if_held_down": [
+                                    {
+                                        "halt": true,
+                                        "key_code": "page_down"
                                     }
                                 ],
                                 "type": "basic"
