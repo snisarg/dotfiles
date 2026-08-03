@@ -2225,7 +2225,7 @@
                         ]
                     },
                     {
-                        "description": "Tap for letter, hold (400ms) for symbol/nav. N=[, M=], U={, I=}, O==, P=+, Q=PgUp, E=PgDn. Works alongside other held modifiers, e.g. cmd+hold-m = cmd+].",
+                        "description": "Tap for letter, hold (400ms) for symbol/nav. N=[, M=], U={, I=}, O==, P=+, W=PgUp, R=PgDn. Works alongside other held modifiers, e.g. cmd+hold-m = cmd+].",
                         "manipulators": [
                             {
                                 "from": {
@@ -2388,20 +2388,20 @@
                             },
                             {
                                 "from": {
-                                    "key_code": "q",
+                                    "key_code": "w",
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "parameters": {
                                     "basic.to_if_held_down_threshold_milliseconds": 400
                                 },
                                 "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "q" }],
+                                    "to_if_canceled": [{ "key_code": "w" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
                                 },
                                 "to_if_alone": [
                                     {
                                         "halt": true,
-                                        "key_code": "q"
+                                        "key_code": "w"
                                     }
                                 ],
                                 "to_if_held_down": [
@@ -2414,20 +2414,20 @@
                             },
                             {
                                 "from": {
-                                    "key_code": "e",
+                                    "key_code": "r",
                                     "modifiers": { "optional": ["any"] }
                                 },
                                 "parameters": {
                                     "basic.to_if_held_down_threshold_milliseconds": 400
                                 },
                                 "to_delayed_action": {
-                                    "to_if_canceled": [{ "key_code": "e" }],
+                                    "to_if_canceled": [{ "key_code": "r" }],
                                     "to_if_invoked": [{ "key_code": "vk_none" }]
                                 },
                                 "to_if_alone": [
                                     {
                                         "halt": true,
-                                        "key_code": "e"
+                                        "key_code": "r"
                                     }
                                 ],
                                 "to_if_held_down": [
