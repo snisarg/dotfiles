@@ -1,0 +1,21 @@
+{
+  "alpha" : 2.8,
+  "minCombinedConfidence" : 0.64,
+  "minCtcScore" : -2.2,
+  "minSimilarity" : 0.72,
+  "minTermLength" : 3,
+  "terms" : [
+    {
+      "aliases" : [
+        "fluid boys",
+        "fluid voice"
+      ],
+      "text" : "FluidVoice",
+      "weight" : 10
+    },
+    {
+      "text" : "diff",
+      "weight" : 10
+    }
+  ]
+}

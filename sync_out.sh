@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-APPS=(karabiner zsh aerospace bash vim git inputrc)
+APPS=(karabiner zsh aerospace bash vim git inputrc alttab ice meetingbar shortcat fluidvoice)
 DRY_RUN=false
 
 run() {
@@ -28,6 +28,16 @@ sync_bash()     { run cp .bash_profile ~/.bash_profile; }
 sync_vim()      { run cp .vimrc ~/.vimrc; }
 sync_git()      { run cp .gitconfig ~/.gitconfig; }
 sync_inputrc()  { run cp .inputrc ~/.inputrc; }
+
+sync_alttab()     { run defaults import com.lwouis.alt-tab-macos preferences/AltTab.plist; }
+sync_ice()        { run defaults import com.jordanbaird.Ice preferences/Ice.plist; }
+sync_meetingbar() { run defaults import leits.MeetingBar preferences/MeetingBar.plist; }
+sync_shortcat()   { run defaults import com.sproutcube.Shortcat preferences/Shortcat.plist; }
+
+sync_fluidvoice() {
+  run mkdir -p ~/Library/Application\ Support/FluidVoice
+  run cp preferences/FluidVoice/parakeet_custom_vocabulary.json ~/Library/Application\ Support/FluidVoice/parakeet_custom_vocabulary.json
+}
 
 usage() {
   echo "Usage: $0 [--dry-run|-n] <app...>|all"

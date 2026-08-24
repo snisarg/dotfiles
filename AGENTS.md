@@ -23,3 +23,20 @@ Config lives in two places:
 - The active profile sets a global default hold threshold via `complex_modifications.parameters.basic.to_if_held_down_threshold_milliseconds` (currently 200ms). This applies to every manipulator that doesn't override it — including `home_row_mods.json`'s dual-role letters (a/s/d/f/j/k/l/;).
 - Per-manipulator overrides are possible by adding a `"parameters"` object directly on that manipulator, e.g. `{ "basic.to_if_held_down_threshold_milliseconds": 400 }`. This is the only way to give a subset of keys a different threshold — there's no rule-level or file-level scope, only global (profile) or per-manipulator.
 - Don't bump the global default to change one file's feel — it silently changes every other rule that relies on the default, including home row mods.
+
+## App preferences (AltTab, Ice, MeetingBar, Shortcat)
+
+Plists live in `preferences/<App>.plist`, synced via `defaults export`/`defaults import` (see `copy_*`/`sync_*` functions in `sync_in.sh`/`sync_out.sh`).
+
+- AltTab also has `com.lwouis.alt-tab-macos.license` and `.usage` domains — these hold machine-specific license activation state, not preferences, and are intentionally **not** synced.
+- Shortcat is a paid app: syncing `preferences/Shortcat.plist` brings over settings, but license activation is tied to the machine and won't transfer.
+
+## FluidVoice
+
+FluidVoice has no real preferences plist. Only `~/Library/Application Support/FluidVoice/parakeet_custom_vocabulary.json` is synced, as a plain file copy (`preferences/FluidVoice/parakeet_custom_vocabulary.json`) — same pattern as Karabiner's JSON config, no `defaults` involved.
+
+## iTerm2
+
+iTerm2 is **not** wired into `sync_in.sh`/`sync_out.sh`. Instead it uses its own native "Preferences > General > Load/Save Settings to Folder" feature, pointed at `preferences/iterm2/` in this repo, so the app reads/writes its plist there directly — avoiding a raw `defaults export`, which would bake in machine-specific window-position keys.
+
+To set this up on a new machine: iTerm2 → Preferences → General → Preferences, check "Load preferences from a custom folder or URL" and "Save changes to folder when iTerm2 quits", and browse to this repo's `preferences/iterm2/` directory. This is a one-time manual GUI step (like the Karabiner import step above) — it can't be scripted.
