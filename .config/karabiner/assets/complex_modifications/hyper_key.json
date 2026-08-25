@@ -11,7 +11,7 @@
   "rules": [
     {
       // One rule file so it appears as a single toggle in the GUI
-      "description": "Hold Tab for Hyper layer. Launch apps: T=Toggl, I=iTerm, K=Keep, F=Sheets, O=OneNote, L=Docs, C=Calendar, B=Safari, N=Notion. Navigate: W=↑, A=←, S=↓, D=→ (tab movement).",
+      "description": "Hold Tab for Hyper layer. Launch apps: T=Toggl, I=iTerm, K=Keep, F=Sheets, O=Obsidian(work), L=Obsidian(bots), C=Calendar, B=Safari, N=Notion. Navigate: W=↑, A=←, S=↓, D=→ (tab movement).",
 
       "manipulators": [
 
@@ -99,11 +99,11 @@
           "to": [ { "shell_command": "open '/Users/snisarg/Applications/Keep.app'", "halt": true } ]
         },
 
-        { // Hyper-L ➜ Google Docs
+        { // Hyper-L ➜ Obsidian (bots vault)
           "type": "basic",
           "from": { "key_code": "l", "modifiers": { "optional": ["any"] } },
           "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
-          "to": [ { "shell_command": "open -a 'Obsidian'", "halt": true } ]
+          "to": [ { "shell_command": "open 'obsidian://open?vault=bots'", "halt": true } ]
         },
 
         { // Hyper-N ➜ Notion
@@ -113,11 +113,11 @@
           "to": [ { "shell_command": "open -a 'Notion'", "halt": true } ]
         },
 
-        { // Hyper-O ➜ OneNote
+        { // Hyper-O ➜ Obsidian (work vault)
           "type": "basic",
           "from": { "key_code": "o", "modifiers": { "optional": ["any"] } },
           "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
-          "to": [ { "shell_command": "open -a 'Microsoft OneNote'", "halt": true } ]
+          "to": [ { "shell_command": "open 'obsidian://open?vault=work'", "halt": true } ]
         },
 
         { // Hyper-S ➜ Down tab move
