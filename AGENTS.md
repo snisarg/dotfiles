@@ -24,10 +24,11 @@ Config lives in two places:
 - Per-manipulator overrides are possible by adding a `"parameters"` object directly on that manipulator, e.g. `{ "basic.to_if_held_down_threshold_milliseconds": 400 }`. This is the only way to give a subset of keys a different threshold — there's no rule-level or file-level scope, only global (profile) or per-manipulator.
 - Don't bump the global default to change one file's feel — it silently changes every other rule that relies on the default, including home row mods.
 
-## App preferences (AltTab, Ice, MeetingBar, Shortcat)
+## App preferences (AltTab, Thaw, MeetingBar, Shortcat)
 
 Plists live in `preferences/<App>.plist`, synced via `defaults export`/`defaults import` (see `copy_*`/`sync_*` functions in `sync_in.sh`/`sync_out.sh`).
 
+- Thaw (`com.stonerl.Thaw`) replaced Ice (`com.jordanbaird.Ice`) in Sep 2026 — Ice had an unfixed upstream crash tied to its "Use Ice Bar" setting plus a blank Menu Bar Layout editor on macOS 26 Tahoe, both stalled with no maintainer fix. Thaw is the actively-maintained fork. The old `preferences/Ice.plist` was deleted; do not re-add an Ice sync target.
 - AltTab also has `com.lwouis.alt-tab-macos.license` and `.usage` domains — these hold machine-specific license activation state, not preferences, and are intentionally **not** synced.
 - Shortcat is a paid app: syncing `preferences/Shortcat.plist` brings over settings, but license activation is tied to the machine and won't transfer.
 

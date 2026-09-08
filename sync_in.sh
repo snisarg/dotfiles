@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-APPS=(karabiner zsh aerospace bash vim git inputrc alttab ice meetingbar shortcat fluidvoice)
+APPS=(karabiner zsh aerospace bash vim git inputrc alttab thaw meetingbar shortcat fluidvoice)
 DRY_RUN=false
 
 run() {
@@ -30,7 +30,7 @@ copy_git()       { run cp ~/.gitconfig .gitconfig; }
 copy_inputrc()   { run cp ~/.inputrc .inputrc; }
 
 copy_alttab()     { run mkdir -p preferences; run defaults export com.lwouis.alt-tab-macos preferences/AltTab.plist; }
-copy_ice()        { run mkdir -p preferences; run defaults export com.jordanbaird.Ice preferences/Ice.plist; }
+copy_thaw()       { run mkdir -p preferences; run defaults export com.stonerl.Thaw preferences/Thaw.plist; }
 copy_meetingbar() { run mkdir -p preferences; run defaults export leits.MeetingBar preferences/MeetingBar.plist; }
 copy_shortcat()   { run mkdir -p preferences; run defaults export com.sproutcube.Shortcat preferences/Shortcat.plist; }
 
