@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-APPS=(karabiner zsh aerospace bash vim git inputrc alttab thaw meetingbar shortcat fluidvoice)
+APPS=(karabiner zsh aerospace yabai bash vim git inputrc alttab thaw meetingbar shortcat fluidvoice)
 DRY_RUN=false
 
 run() {
@@ -24,6 +24,7 @@ sync_karabiner() {
 
 sync_zsh()      { run cp .zshrc ~/.zshrc; }
 sync_aerospace() { run cp .aerospace.toml ~/.aerospace.toml; }
+sync_yabai()     { run cp .yabairc ~/.yabairc; run chmod +x ~/.yabairc; }
 sync_bash()     { run cp .bash_profile ~/.bash_profile; }
 sync_vim()      { run cp .vimrc ~/.vimrc; }
 sync_git()      { run cp .gitconfig ~/.gitconfig; }

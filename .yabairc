@@ -1,0 +1,105 @@
+#!/usr/bin/env sh
+
+# Yabai is used for app-to-Space routing, not automatic tiling.
+# Moving windows to existing Spaces works with SIP fully enabled.
+yabai -m config layout float
+
+# Space labels are Yabai runtime state, so rebuild them on every launch. Match
+# macOS-owned UUIDs to survive Mission Control reordering. The original first
+# desktop has no UUID on this machine, so identify that one by its stable id.
+space_inventory="$(yabai -m query --spaces)" || exit 1
+
+label_space_by_id() {
+    label="$1"
+    id="$2"
+    index="$(printf '%s\n' "$space_inventory" | jq -er --argjson id "$id" \
+        '.[] | select(.id == $id) | .index')" || return 1
+    yabai -m space "$index" --label "$label"
+}
+
+label_space_by_uuid() {
+    label="$1"
+    uuid="$2"
+    index="$(printf '%s\n' "$space_inventory" | jq -er --arg uuid "$uuid" \
+        '.[] | select(.uuid == $uuid) | .index')" || return 1
+    yabai -m space "$index" --label "$label"
+}
+
+routing_ready=true
+label_space_by_id trading 1 || routing_ready=false
+label_space_by_uuid work-comms B875ECBD-5773-4F0F-B764-4066CA1414C8 || routing_ready=false
+label_space_by_uuid coding 32E6B421-90C8-490F-BE9A-0BB15071A0C1 || routing_ready=false
+label_space_by_uuid chrome-4 10E888AB-6EFF-4777-BB16-3FC664BEF94A || routing_ready=false
+label_space_by_uuid chrome-5 B1669F6C-08AF-423A-A05B-3B0E73EF454A || routing_ready=false
+label_space_by_uuid chrome-6 EFE7226A-95A1-459C-B39A-D86E60A94224 || routing_ready=false
+label_space_by_uuid chrome-8 DF16DA62-6B38-41B0-82A6-6D5485DC3532 || routing_ready=false
+label_space_by_uuid chatgpt 55AC6520-1076-4F83-B9A7-76F03A2DD733 || routing_ready=false
+label_space_by_uuid chrome-10 662AF40E-2F07-4436-A28A-127ED5F004C4 || routing_ready=false
+label_space_by_uuid mail E6CEEE9A-B0DB-4689-8AF1-1B7B55D1D29F || routing_ready=false
+label_space_by_uuid planning C4149482-42E1-4A24-B9BA-1616F685D716 || routing_ready=false
+label_space_by_uuid personal-comms 57B9647F-2E50-4BBC-9985-7910D79BD16B || routing_ready=false
+
+if "$routing_ready"; then
+    rule_labels="route-trading route-discord route-work-comms route-coding route-obsidian-work route-obsidian-bots route-chrome-2 route-chrome-3 route-chrome-4 route-chrome-5 route-chrome-6 route-chrome-8 route-chrome-10 route-chatgpt route-mail route-planning route-personal-comms"
+
+    # Avoid duplicate rules when the config is reloaded without a daemon restart.
+    for rule_label in $rule_labels; do
+        yabai -m rule --remove "$rule_label" 2>/dev/null || true
+    done
+
+    yabai -m rule --add label=route-trading \
+        app='^TradingView$' space=trading
+    yabai -m rule --add label=route-discord \
+        app='^Discord$' space=trading
+    yabai -m rule --add label=route-work-comms \
+        app='^(Slack|Morpheus)$' space=work-comms
+    yabai -m rule --add label=route-coding \
+        app='^PyCharm$' space=coding
+    yabai -m rule --add label=route-obsidian-work \
+        app='^Obsidian$' title='^.* - work - Obsidian( |$)' space=work-comms
+    yabai -m rule --add label=route-obsidian-bots \
+        app='^Obsidian$' title='^.* - bots - Obsidian( |$)' space=planning
+    yabai -m rule --add label=route-chrome-2 \
+        app='^Google Chrome$' title='^2($| - )' space=work-comms
+    yabai -m rule --add label=route-chrome-3 \
+        app='^Google Chrome$' title='^3($| - )' space=coding
+    yabai -m rule --add label=route-chrome-4 \
+        app='^Google Chrome$' title='^4($| - )' space=chrome-4
+    yabai -m rule --add label=route-chrome-5 \
+        app='^Google Chrome$' title='^5($| - )' space=chrome-5
+    yabai -m rule --add label=route-chrome-6 \
+        app='^Google Chrome$' title='^6($| - )' space=chrome-6
+    yabai -m rule --add label=route-chrome-8 \
+        app='^Google Chrome$' title='^8($| - )' space=chrome-8
+    yabai -m rule --add label=route-chrome-10 \
+        app='^Google Chrome$' title='^10($| - )' space=chrome-10
+    yabai -m rule --add label=route-chatgpt \
+        app='^ChatGPT$' space=chatgpt
+    yabai -m rule --add label=route-mail \
+        app='^(Mail|Opal)$' space=mail
+    yabai -m rule --add label=route-planning \
+        app='^(Calendar|Sheets|Google Keep|Toggl Track)$' space=planning
+    yabai -m rule --add label=route-personal-comms \
+        app='^(.*WhatsApp|zoom\.us)$' space=personal-comms
+
+    # Catch windows restored before Yabai finished loading at login. Future
+    # windows are handled automatically as they are created.
+    for rule_label in $rule_labels; do
+        yabai -m rule --apply "$rule_label"
+    done
+
+    # Chrome can restore a window before restoring its custom name. Reapply
+    # once the stable numeric title appears.
+    yabai -m signal --remove route-named-chrome 2>/dev/null || true
+    yabai -m signal --add label=route-named-chrome \
+        event=window_title_changed app='^Google Chrome$' \
+        action='yabai -m rule --apply'
+
+    # Obsidian titles change with the active note but retain the vault name.
+    yabai -m signal --remove route-obsidian-vaults 2>/dev/null || true
+    yabai -m signal --add label=route-obsidian-vaults \
+        event=window_title_changed app='^Obsidian$' \
+        action='yabai -m rule --apply'
+else
+    echo "yabai: one or more configured Spaces could not be found; routing skipped" >&2
+fi
