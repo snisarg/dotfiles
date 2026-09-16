@@ -1,5 +1,13 @@
 # AGENTS.md
 
+## Synced dotfile workflow
+
+For any configuration managed by `sync_in.sh` and `sync_out.sh`:
+
+1. Before editing, run `./sync_in.sh <target>` and check the repository diff. If syncing in produces any changes, the computer and repository did not match: stop without making further changes and tell the user what differs.
+2. If syncing in leaves the repository unchanged, make the requested changes in this dotfiles repository.
+3. Review the diff, then run `./sync_out.sh <target>` to copy the repository changes to the computer.
+
 ## Karabiner
 
 Config lives in two places:
