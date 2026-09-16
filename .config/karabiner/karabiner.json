@@ -457,7 +457,7 @@
                         ]
                     },
                     {
-                        "description": "Hold Tab for Hyper layer. Launch apps: T=Toggl, I=iTerm, K=Keep, F=Sheets, O=Obsidian(work), L=Obsidian(bots), C=Calendar, B=Safari, N=Notion. Navigate: W=↑, A=←, S=↓, D=→ (tab movement).",
+                        "description": "Hold Tab for Hyper layer. Launch apps: T=Toggl, I=iTerm, K=Keep, F=Sheets, G=ChatGPT, O=Obsidian(work), L=Obsidian(bots), C=Calendar, B=Safari, N=Notion. Navigate: W=↑, A=←, S=↓, D=→ (tab movement).",
                         "manipulators": [
                             {
                                 "from": {
@@ -580,7 +580,27 @@
                                 "to": [
                                     {
                                         "halt": true,
-                                        "shell_command": "open -a 'Sheets'"
+                                        "shell_command": "open '/Users/snisarg/Applications/Food & Health - Google Sheets.app' || open '/Users/snisarg/Applications/Chrome Apps.localized/Sheets.app'"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "name": "hyper_layer",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "g",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to": [
+                                    {
+                                        "halt": true,
+                                        "shell_command": "open -a 'ChatGPT'"
                                     }
                                 ],
                                 "type": "basic"
@@ -620,7 +640,7 @@
                                 "to": [
                                     {
                                         "halt": true,
-                                        "shell_command": "open -a 'Keep'"
+                                        "shell_command": "open '/Users/snisarg/Applications/Keep.app'"
                                     }
                                 ],
                                 "type": "basic"

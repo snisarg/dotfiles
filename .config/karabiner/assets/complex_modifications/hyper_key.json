@@ -2,7 +2,7 @@
   // │ Key Index (already repurposed in this rule set)      │
   // ├──────────────────────────────────────────────────────┤
   // │ Layer keys : Tab, quote (')                          │
-  // │ App hotkeys: t i k f l o c b n                      │
+  // │ App hotkeys: t i k f g l o c b n                    │
   // │ Window mgmt : w a s d                                │
   // └──────────────────────────────────────────────────────┘
 
@@ -11,7 +11,7 @@
   "rules": [
     {
       // One rule file so it appears as a single toggle in the GUI
-      "description": "Hold Tab for Hyper layer. Launch apps: T=Toggl, I=iTerm, K=Keep, F=Sheets, O=Obsidian(work), L=Obsidian(bots), C=Calendar, B=Safari, N=Notion. Navigate: W=↑, A=←, S=↓, D=→ (tab movement).",
+      "description": "Hold Tab for Hyper layer. Launch apps: T=Toggl, I=iTerm, K=Keep, F=Sheets, G=ChatGPT, O=Obsidian(work), L=Obsidian(bots), C=Calendar, B=Safari, N=Notion. Navigate: W=↑, A=←, S=↓, D=→ (tab movement).",
 
       "manipulators": [
 
@@ -85,6 +85,13 @@
           "to": [ { "shell_command": "open '/Users/snisarg/Applications/Food & Health - Google Sheets.app' || open '/Users/snisarg/Applications/Chrome Apps.localized/Sheets.app'", "halt": true } ]
         },
 
+        { // Hyper-G ➜ ChatGPT
+          "type": "basic",
+          "from": { "key_code": "g", "modifiers": { "optional": ["any"] } },
+          "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
+          "to": [ { "shell_command": "open -a 'ChatGPT'", "halt": true } ]
+        },
+
         { // Hyper-I ➜ iTerm
           "type": "basic",
           "from": { "key_code": "i", "modifiers": { "optional": ["any"] } },
@@ -145,4 +152,3 @@
     }
   ] /* rules */
 }
-
