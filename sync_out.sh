@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # sync_out.sh — deploy dotfiles from repo to home directory
-# Usage: ./sync_out.sh [--dry-run|-n] <app...>|all
+# Usage: ./sync_out.sh [--dry-run|-n] [--profile <name>] <app...>|all
 # Run from repo root.
 
 set -euo pipefail
 
 APPS=(karabiner zsh aerospace yabai bash vim git inputrc alttab thaw meetingbar shortcat fluidvoice)
 DRY_RUN=false
+PROFILE="${YABAI_PROFILE:-}"
 
 run() {
   if $DRY_RUN; then
@@ -24,7 +25,47 @@ sync_karabiner() {
 
 sync_zsh()      { run cp .zshrc ~/.zshrc; }
 sync_aerospace() { run cp .aerospace.toml ~/.aerospace.toml; }
-sync_yabai()     { run cp .yabairc ~/.yabairc; run chmod +x ~/.yabairc; }
+resolve_yabai_profile() {
+  local profile=$PROFILE
+
+  if [[ -z $profile && -f ~/.config/yabai/profile ]]; then
+    profile=$(sed -n '1p' ~/.config/yabai/profile)
+  fi
+
+  if [[ -z $profile ]]; then
+    echo "Error: no Yabai profile selected; use --profile <name>" >&2
+    return 1
+  fi
+  if [[ ! $profile =~ ^[A-Za-z0-9._-]+$ ]]; then
+    echo "Error: invalid Yabai profile name: $profile" >&2
+    return 1
+  fi
+
+  printf '%s\n' "$profile"
+}
+
+sync_yabai() {
+  local profile source_profile
+  profile=$(resolve_yabai_profile)
+  source_profile=".config/yabai/profiles/$profile.sh"
+
+  if [[ ! -f $source_profile ]]; then
+    echo "Error: Yabai profile config not found: $source_profile" >&2
+    return 1
+  fi
+
+  run mkdir -p ~/.config/yabai/profiles
+  run cp .yabairc ~/.yabairc
+  run chmod +x ~/.yabairc
+  run cp "$source_profile" "$HOME/.config/yabai/profiles/$profile.sh"
+
+  if $DRY_RUN; then
+    echo "[dry-run] write Yabai profile '$profile' to ~/.config/yabai/profile"
+  else
+    printf '%s\n' "$profile" > ~/.config/yabai/profile
+  fi
+  echo "Deployed Yabai profile: $profile"
+}
 sync_bash()     { run cp .bash_profile ~/.bash_profile; }
 sync_vim()      { run cp .vimrc ~/.vimrc; }
 sync_git()      { run cp .gitconfig ~/.gitconfig; }
@@ -41,7 +82,7 @@ sync_fluidvoice() {
 }
 
 usage() {
-  echo "Usage: $0 [--dry-run|-n] <app...>|all"
+  echo "Usage: $0 [--dry-run|-n] [--profile <name>] <app...>|all"
   echo "Apps: ${APPS[*]}"
   exit 1
 }
@@ -51,12 +92,26 @@ usage() {
 
 [[ $# -eq 0 ]] && usage
 
-# Parse flags
 args=()
-for arg in "$@"; do
-  case $arg in
-    --dry-run|-n) DRY_RUN=true ;;
-    *) args+=("$arg") ;;
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --dry-run|-n)
+      DRY_RUN=true
+      shift
+      ;;
+    --profile)
+      [[ $# -ge 2 ]] || usage
+      PROFILE=$2
+      shift 2
+      ;;
+    --profile=*)
+      PROFILE=${1#*=}
+      shift
+      ;;
+    *)
+      args+=("$1")
+      shift
+      ;;
   esac
 done
 
