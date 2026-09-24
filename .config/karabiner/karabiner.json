@@ -206,7 +206,7 @@
                                     "key_code": "e",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "to": [{ "mouse_key": { "y": -1024 } }],
+                                "to": [{ "mouse_key": { "y": -512 } }],
                                 "type": "basic"
                             },
                             {
@@ -221,7 +221,7 @@
                                     "key_code": "s",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "to": [{ "mouse_key": { "x": -1024 } }],
+                                "to": [{ "mouse_key": { "x": -512 } }],
                                 "type": "basic"
                             },
                             {
@@ -236,7 +236,7 @@
                                     "key_code": "d",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "to": [{ "mouse_key": { "y": 1024 } }],
+                                "to": [{ "mouse_key": { "y": 512 } }],
                                 "type": "basic"
                             },
                             {
@@ -251,7 +251,7 @@
                                     "key_code": "f",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "to": [{ "mouse_key": { "x": 1024 } }],
+                                "to": [{ "mouse_key": { "x": 512 } }],
                                 "type": "basic"
                             },
                             {
