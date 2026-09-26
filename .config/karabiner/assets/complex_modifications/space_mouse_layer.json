@@ -3,7 +3,7 @@
 // ├─────────────────────────────────────────────────────────────┤
 // │ Layer key  : Spacebar (hold ≥ 350 ms)                       │
 // │ Tap key    : Spacebar (tap ≤ 250 ms)                        │
-// │ Mouse move : e ↑  s ←  d ↓  f →   (hold ; for 3x speed)   │
+// │ Mouse move : e ↑  s ←  d ↓  f →   (hold ; for faster move) │
 // │ Scroll     : i ↑  k ↓  u ←  o →   (hold ; for 3x speed)   │
 // │ Clicks     : j left-click  l right-click                    │
 // └─────────────────────────────────────────────────────────────┘
@@ -48,14 +48,14 @@
           ]
         },
 
-        // Semicolon: hold in mouse layer = 3x speed boost
+        // Semicolon: hold in mouse layer = speed boost
         { "type": "basic", "from": { "key_code": "semicolon", "modifiers": { "optional": ["any"] } }, "to": [{ "set_variable": { "name": "mouse_speed_boost", "value": 1 } }], "to_after_key_up": [{ "set_variable": { "name": "mouse_speed_boost", "value": 0 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
 
-        // Mouse movement fast (;+ESDF) — 3x speed
-        { "type": "basic", "from": { "key_code": "e", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "y": -4608 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }, { "type": "variable_if", "name": "mouse_speed_boost", "value": 1 }] },
-        { "type": "basic", "from": { "key_code": "s", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "x": -4608 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }, { "type": "variable_if", "name": "mouse_speed_boost", "value": 1 }] },
-        { "type": "basic", "from": { "key_code": "d", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "y":  4608 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }, { "type": "variable_if", "name": "mouse_speed_boost", "value": 1 }] },
-        { "type": "basic", "from": { "key_code": "f", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "x":  4608 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }, { "type": "variable_if", "name": "mouse_speed_boost", "value": 1 }] },
+        // Mouse movement fast (;+ESDF) — 20% lower movement value
+        { "type": "basic", "from": { "key_code": "e", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "y": -3686 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }, { "type": "variable_if", "name": "mouse_speed_boost", "value": 1 }] },
+        { "type": "basic", "from": { "key_code": "s", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "x": -3686 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }, { "type": "variable_if", "name": "mouse_speed_boost", "value": 1 }] },
+        { "type": "basic", "from": { "key_code": "d", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "y":  3686 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }, { "type": "variable_if", "name": "mouse_speed_boost", "value": 1 }] },
+        { "type": "basic", "from": { "key_code": "f", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "x":  3686 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }, { "type": "variable_if", "name": "mouse_speed_boost", "value": 1 }] },
 
         // Mouse movement — ESDF (Space only; half the previous speed)
         { "type": "basic", "from": { "key_code": "e", "modifiers": { "optional": ["any"] } }, "to": [{ "mouse_key": { "y": -512 } }], "conditions": [{ "type": "variable_if", "name": "enter_mouse_layer", "value": 1 }] },
