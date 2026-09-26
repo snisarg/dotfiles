@@ -37,6 +37,23 @@ label_space_by_uuid() {
     yabai -m space "$index" --label "$label"
 }
 
+# Mail exposes its mailbox/list windows as "message viewers" through its
+# AppleScript API. Detached message windows have the same accessibility role,
+# so window title or role matching alone cannot reliably distinguish them.
+route_existing_mail_viewers() {
+    pgrep -x Mail >/dev/null 2>&1 || return 0
+
+    osascript -e 'tell application "Mail" to get id of window of every message viewer' 2>/dev/null |
+        tr ',' '\n' |
+        while IFS= read -r window_id; do
+            window_id="$(printf '%s' "$window_id" | tr -d '[:space:]')"
+            case "$window_id" in
+                ''|*[!0-9]*) continue ;;
+            esac
+            yabai -m window "$window_id" --space mail
+        done
+}
+
 routing_ready=true
 profile_config="$HOME/.config/yabai/profiles/$yabai_profile.sh"
 if [ ! -r "$profile_config" ]; then
@@ -56,10 +73,11 @@ else
 fi
 
 if "$routing_ready"; then
-    rule_labels="route-trading route-discord route-work-comms route-coding route-obsidian-work route-obsidian-bots route-chrome-2 route-chrome-3 route-chrome-4 route-chrome-5 route-chrome-6 route-chrome-8 route-chrome-10 route-chatgpt route-github-desktop route-mail route-planning route-personal-comms"
+    rule_labels="route-trading route-discord route-work-comms route-coding route-obsidian-work route-obsidian-bots route-chrome-2 route-chrome-3 route-chrome-4 route-chrome-5 route-chrome-6 route-chrome-8 route-chrome-10 route-chatgpt route-github-desktop route-opal route-planning route-personal-comms"
 
     # Avoid duplicate rules when the config is reloaded without a daemon restart.
-    for rule_label in $rule_labels; do
+    # route-mail is the old broad rule that also captured detached Mail windows.
+    for rule_label in $rule_labels route-mail; do
         yabai -m rule --remove "$rule_label" 2>/dev/null || true
     done
 
@@ -93,8 +111,8 @@ if "$routing_ready"; then
         app='^ChatGPT$' space=chatgpt
     yabai -m rule --add label=route-github-desktop \
         app='^GitHub Desktop$' space=chatgpt
-    yabai -m rule --add label=route-mail \
-        app='^(Mail|Opal)$' space=mail
+    yabai -m rule --add label=route-opal \
+        app='^Opal$' space=mail
     yabai -m rule --add label=route-planning \
         app='^(Calendar|Sheets|Google Keep|Toggl Track)$' space=planning
     yabai -m rule --add label=route-personal-comms \
@@ -105,6 +123,15 @@ if "$routing_ready"; then
     for rule_label in $rule_labels; do
         yabai -m rule --apply "$rule_label"
     done
+
+    # Restore only Mail's main mailbox/list viewers. Individual message windows
+    # are intentionally unmanaged and remain on the Space where they opened.
+    route_existing_mail_viewers
+
+    yabai -m signal --remove route-mail-viewers 2>/dev/null || true
+    yabai -m signal --add label=route-mail-viewers \
+        event=window_created app='^Mail$' \
+        action='attempt=0; while [ "$attempt" -lt 3 ]; do viewer_ids="$(osascript -e "tell application \"Mail\" to get id of window of every message viewer" 2>/dev/null)"; if printf "%s\n" "$viewer_ids" | tr "," "\n" | grep -Eq "^[[:space:]]*$YABAI_WINDOW_ID[[:space:]]*$"; then yabai -m window "$YABAI_WINDOW_ID" --space mail; exit 0; fi; attempt=$((attempt + 1)); sleep 1; done'
 
     # Chrome and Obsidian can create a window before restoring its stable name.
     # Retry only their own rules once after window creation; title changes such
