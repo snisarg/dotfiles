@@ -19,7 +19,27 @@ fi
 
 # Space labels are Yabai runtime state, so rebuild them on every launch. Each
 # machine profile maps shared logical labels to that laptop's macOS Spaces.
-space_inventory="$(yabai -m query --spaces)" || exit 1
+# At login Yabai can accept messages before it has finished enumerating Spaces,
+# and its first query can therefore be empty or incomplete. Wait for one valid
+# inventory instead of permanently skipping routing for the rest of the login.
+space_inventory=""
+space_query_attempt=0
+while [ "$space_query_attempt" -lt 30 ]; do
+    candidate="$(yabai -m query --spaces 2>/dev/null)" || candidate=""
+    if printf '%s\n' "$candidate" | jq -e \
+        'type == "array" and length > 0' >/dev/null 2>&1; then
+        space_inventory="$candidate"
+        break
+    fi
+
+    space_query_attempt=$((space_query_attempt + 1))
+    sleep 1
+done
+
+if [ -z "$space_inventory" ]; then
+    echo "yabai: Spaces were not ready after 30 seconds; routing skipped" >&2
+    exit 1
+fi
 
 label_space_by_id() {
     label="$1"
@@ -50,7 +70,9 @@ route_existing_mail_viewers() {
             case "$window_id" in
                 ''|*[!0-9]*) continue ;;
             esac
-            yabai -m window "$window_id" --space mail
+            if yabai -m query --windows --window "$window_id" >/dev/null 2>&1; then
+                yabai -m window "$window_id" --space mail 2>/dev/null || true
+            fi
         done
 }
 
