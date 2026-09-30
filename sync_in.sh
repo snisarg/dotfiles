@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-APPS=(karabiner zsh aerospace yabai bash vim git inputrc alttab thaw meetingbar shortcat fluidvoice)
+APPS=(karabiner zsh yabai bash vim git inputrc alttab thaw meetingbar shortcat fluidvoice)
 DRY_RUN=false
 PROFILE="${YABAI_PROFILE:-}"
 
@@ -24,7 +24,6 @@ copy_karabiner() {
 }
 
 copy_zsh()       { run cp ~/.zshrc .zshrc; }
-copy_aerospace() { run cp ~/.aerospace.toml .aerospace.toml; }
 resolve_yabai_profile() {
   local profile=$PROFILE
 
