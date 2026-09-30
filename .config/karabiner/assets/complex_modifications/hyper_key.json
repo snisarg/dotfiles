@@ -103,7 +103,7 @@
           "type": "basic",
           "from": { "key_code": "k", "modifiers": { "optional": ["any"] } },
           "conditions": [ { "type": "variable_if", "name": "hyper_layer", "value": 1 } ],
-          "to": [ { "shell_command": "open '/Users/snisarg/Applications/Keep.app'", "halt": true } ]
+          "to": [ { "shell_command": "open '/Users/snisarg/Applications/Chrome Apps.localized/Keep.app'", "halt": true } ]
         },
 
         { // Hyper-L ➜ Obsidian (bots vault)
