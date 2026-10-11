@@ -41,6 +41,13 @@ if [ -z "$space_inventory" ]; then
     exit 1
 fi
 
+# Independent of Space routing. Compiles a small AppKit bounds helper locally.
+window_memory="$HOME/.config/yabai/scripts/window-memory.py"
+if [ -r "$window_memory" ]; then
+    python3 "$window_memory" install ||
+        echo "yabai: window geometry memory could not be initialized" >&2
+fi
+
 label_space_by_id() {
     label="$1"
     id="$2"
@@ -95,11 +102,12 @@ else
 fi
 
 if "$routing_ready"; then
-    rule_labels="route-trading route-discord route-work-comms route-coding route-obsidian-work route-obsidian-bots route-chrome-2 route-chrome-3 route-chrome-4 route-chrome-5 route-chrome-6 route-chrome-8 route-chrome-10 route-chatgpt route-github-desktop route-opal route-planning route-personal-comms"
+    rule_labels="route-trading route-discord route-work-comms route-obsidian-work route-obsidian-bots route-chrome-2 route-chrome-3 route-chrome-4 route-chrome-5 route-chrome-6 route-chrome-8 route-chrome-10 route-chatgpt route-github-desktop route-opal route-planning route-personal-comms"
 
     # Avoid duplicate rules when the config is reloaded without a daemon restart.
     # route-mail is the old broad rule that also captured detached Mail windows.
-    for rule_label in $rule_labels route-mail; do
+    # route-coding is retired: PyCharm is no longer routed or geometry-managed.
+    for rule_label in $rule_labels route-mail route-coding; do
         yabai -m rule --remove "$rule_label" 2>/dev/null || true
     done
 
@@ -109,8 +117,6 @@ if "$routing_ready"; then
         app='^Discord$' space=trading
     yabai -m rule --add label=route-work-comms \
         app='^(Slack|Morpheus)$' space=work-comms
-    yabai -m rule --add label=route-coding \
-        app='^PyCharm$' space=coding
     yabai -m rule --add label=route-obsidian-work \
         app='^Obsidian$' title='^.* - work - Obsidian( |$)' space=work-comms
     yabai -m rule --add label=route-obsidian-bots \

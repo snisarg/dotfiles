@@ -57,6 +57,11 @@ sync_yabai() {
   run cp .yabairc ~/.yabairc
   run chmod +x ~/.yabairc
   run cp "$source_profile" "$HOME/.config/yabai/profiles/$profile.sh"
+  if [[ -d .config/yabai/scripts ]]; then
+    run mkdir -p "$HOME/.config/yabai/scripts"
+    run rsync -a --exclude='__pycache__/' --exclude='*.pyc' \
+      .config/yabai/scripts/ "$HOME/.config/yabai/scripts/"
+  fi
 
   if $DRY_RUN; then
     echo "[dry-run] write Yabai profile '$profile' to ~/.config/yabai/profile"

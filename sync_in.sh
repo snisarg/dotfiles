@@ -56,6 +56,11 @@ copy_yabai() {
   run mkdir -p .config/yabai/profiles
   run cp ~/.yabairc .yabairc
   run cp "$source_profile" ".config/yabai/profiles/$profile.sh"
+  if [[ -d "$HOME/.config/yabai/scripts" ]]; then
+    run mkdir -p .config/yabai/scripts
+    run rsync -a --exclude='__pycache__/' --exclude='*.pyc' \
+      "$HOME/.config/yabai/scripts/" .config/yabai/scripts/
+  fi
   echo "Synced Yabai profile: $profile"
 }
 copy_bash()      { run cp ~/.bash_profile .bash_profile; }
