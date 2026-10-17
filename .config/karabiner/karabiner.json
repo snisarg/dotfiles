@@ -640,7 +640,7 @@
                                 "to": [
                                     {
                                         "halt": true,
-                                        "shell_command": "open '/Users/snisarg/Applications/Keep.app'"
+                                        "shell_command": "open '/Users/snisarg/Applications/Chrome Apps.localized/Keep.app'"
                                     }
                                 ],
                                 "type": "basic"
