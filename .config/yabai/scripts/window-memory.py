@@ -3,22 +3,32 @@
 
 Only a display/usable-area change restores geometry. Manual moves/resizes on
 the same display update the saved geometry. New windows use their app's layout.
+Height is governed by one global near-full-height rule. Explicit apps may also
+remember width and horizontal alignment; no app has a separate height policy.
 """
 import fcntl
 import json
 from pathlib import Path
+import re
 import shlex
 import shutil
 import subprocess
 import sys
 import time
 
-MODES = {
+WIDTH_MODES = {
     "iTerm2": "fixed",
     "ChatGPT": "fixed",
     "Google Chrome": "fixed",
 }
-APP_FILTER = "^(iTerm2|ChatGPT|Google Chrome)$"
+# This vertical-only policy applies equally to apps with and without width rules.
+FULL_HEIGHT_SETTINGS = {
+    "enabled": True,
+    "minimum_height_fraction": 0.95,
+    "maximum_edge_gap_fraction": 0.03,
+    "excluded_apps": ("PyCharm", "jetbrains_client"),
+}
+APP_FILTER = "^(" + "|".join(re.escape(app) for app in WIDTH_MODES) + ")$"
 SCRIPT = Path(__file__).resolve()
 CACHE = Path.home() / "Library/Caches/yabai-window-memory"
 SCREEN_TOOL = CACHE / "screen-info"
@@ -59,9 +69,29 @@ def usable_displays():
     }
 
 
+def full_height_enabled(app):
+    return (FULL_HEIGHT_SETTINGS["enabled"]
+            and app not in FULL_HEIGHT_SETTINGS["excluded_apps"])
+
+
+def tracking_mode(app):
+    if app in WIDTH_MODES:
+        return "width"
+    if full_height_enabled(app):
+        return "full-height"
+    return None
+
+
+def width_policy_matches(record, app):
+    mode = WIDTH_MODES.get(app)
+    return (record.get("tracking_mode") == tracking_mode(app)
+            and (mode is None or record.get("horizontal_position") ==
+                 ("available-space" if mode == "fixed" else "screen")))
+
+
 def eligible(window):
     return (
-        window.get("app") in MODES
+        tracking_mode(window.get("app")) is not None
         and window.get("subrole") == "AXStandardWindow"
         and window.get("can-move")
         and window.get("can-resize")
@@ -71,6 +101,38 @@ def eligible(window):
         and not window.get("is-minimized")
         and not window.get("is-hidden")
     )
+
+
+def window_signal_filter():
+    if not FULL_HEIGHT_SETTINGS["enabled"]:
+        return "app=" + APP_FILTER
+    excluded = sorted(set(FULL_HEIGHT_SETTINGS["excluded_apps"]) - set(WIDTH_MODES))
+    if excluded:
+        return "app!=^(" + "|".join(re.escape(app) for app in excluded) + ")$"
+    return None  # Listen to all apps; eligibility still filters window types.
+
+
+def full_height_margins(frame, bounds):
+    """Recognize near-full height only when both edges are near usable bounds."""
+    height = bounds["h"]
+    if height <= 0:
+        return None
+    top = frame["y"] - bounds["y"]
+    bottom = bounds["y"] + height - frame["y"] - frame["h"]
+    limit = FULL_HEIGHT_SETTINGS["maximum_edge_gap_fraction"] * height
+    if (frame["h"] < FULL_HEIGHT_SETTINGS["minimum_height_fraction"] * height - EPSILON
+            or frame["h"] > height + EPSILON
+            or not -EPSILON <= top <= limit + EPSILON
+            or not -EPSILON <= bottom <= limit + EPSILON):
+        return None
+    return {"top": max(0, top) / height, "bottom": max(0, bottom) / height}
+
+
+def full_height_target(margins, frame, bounds):
+    # Keep the post-migration width/x chosen by the app/macOS, not old geometry.
+    top = round(bounds["y"] + margins["top"] * bounds["h"])
+    bottom = round(bounds["y"] + bounds["h"] * (1 - margins["bottom"]))
+    return dict(frame, y=top, h=max(1, bottom - top))
 
 
 def close_frame(a, b):
@@ -87,30 +149,24 @@ def horizontal_alignment(frame, bounds):
     return max(0, min(1, (frame["x"] - bounds["x"]) / available))
 
 
-def proportions(frame, bounds, mode):
+def width_preferences(frame, bounds, mode):
     return {
         "x": (horizontal_alignment(frame, bounds) if mode == "fixed"
               else (frame["x"] - bounds["x"]) / bounds["w"]),
-        "y": (frame["y"] - bounds["y"]) / bounds["h"],
         "w": frame["w"] / bounds["w"] if mode == "relative" else frame["w"],
-        "h": frame["h"] / bounds["h"],
     }
 
 
-def target_frame(saved, bounds, mode):
+def target_width(saved, bounds, mode):
     # Preserve unclamped preferences: a small screen or app minimum size must
     # not permanently replace the user's larger-screen layout.
     width = saved["w"] * bounds["w"] if mode == "relative" else saved["w"]
     width = max(1, min(round(width), bounds["w"]))
-    height = max(1, min(round(saved["h"] * bounds["h"]), bounds["h"]))
     horizontal_span = bounds["w"] - width if mode == "fixed" else bounds["w"]
     return {
         "x": round(bounds["x"] + max(0, min(
             saved["x"] * horizontal_span, bounds["w"] - width))),
-        "y": round(bounds["y"] + max(0, min(
-            saved["y"] * bounds["h"], bounds["h"] - height))),
         "w": width,
-        "h": height,
     }
 
 
@@ -119,46 +175,89 @@ def identity(window):
 
 
 def new_record(window, display):
-    return {
+    record = {
         "identity": identity(window),
         "display": display,
         "last_frame": window["frame"],
-        "horizontal_position": ("available-space" if MODES[window["app"]] == "fixed"
-                                else "screen"),
-        "proportions": proportions(
-            window["frame"], display["frame"], MODES[window["app"]]),
+        "tracking_mode": tracking_mode(window["app"]),
+        "full_height": (full_height_margins(window["frame"], display["frame"])
+                        if full_height_enabled(window["app"]) else None),
+        "width_preferences": None,
     }
+    if window["app"] in WIDTH_MODES:
+        record.update({
+            "horizontal_position": ("available-space" if WIDTH_MODES[window["app"]] == "fixed"
+                                    else "screen"),
+            "width_preferences": width_preferences(
+                window["frame"], display["frame"], WIDTH_MODES[window["app"]]),
+        })
+    return record
 
 
 def migrate_record(record, mode):
-    """Convert legacy screen-relative x using its last saved physical layout.
+    """Split old app geometry into width-only preferences and global height.
 
-    Don't use the live window here: macOS may already have moved it to another
-    screen. Preserve the original width, height and vertical preferences.
+    Use saved preferences, not a live window already clamped by macOS. Discard
+    per-app height/y properties; keep only qualifying near-full-height intent.
     """
-    if mode != "fixed" or record.get("horizontal_position") == "available-space":
+    if "width_preferences" in record:
         return record
-    saved = dict(record["proportions"])
-    saved["x"] = horizontal_alignment(record["last_frame"], record["display"]["frame"])
-    return dict(record, proportions=saved, horizontal_position="available-space")
+    app = record["identity"][0]
+    bounds = record["display"]["frame"]
+    old = record.get("proportions")
+    margins = record.get("full_height")
+    if old is not None:
+        preferred = dict(record["last_frame"],
+                         y=bounds["y"] + old["y"] * bounds["h"],
+                         h=old["h"] * bounds["h"])
+        margins = full_height_margins(preferred, bounds)
+    migrated = {
+        "identity": record["identity"], "display": record["display"],
+        "last_frame": record["last_frame"],
+        "tracking_mode": "width" if mode is not None else tracking_mode(app),
+        "full_height": margins if full_height_enabled(app) else None,
+        "width_preferences": None,
+    }
+    if mode is not None:
+        if old is not None:
+            old_mode = "relative" if record.get("horizontal_position") == "screen" else "fixed"
+            if old_mode != mode:
+                saved = width_preferences(record["last_frame"], bounds, mode)
+            else:
+                saved = {axis: old[axis] for axis in ("x", "w")}
+                if mode == "fixed" and record.get("horizontal_position") != "available-space":
+                    saved["x"] = horizontal_alignment(record["last_frame"], bounds)
+        else:
+            saved = width_preferences(record["last_frame"], bounds, mode)
+        migrated.update(width_preferences=saved,
+                        horizontal_position="available-space" if mode == "fixed" else "screen")
+    return migrated
 
 
 def updated_record(record, window, display):
     """Only manually changed axes replace saved (possibly clamped) preferences."""
     result = dict(record)
-    saved = dict(record["proportions"])
-    fresh = proportions(window["frame"], display["frame"], MODES[window["app"]])
-    for axis in ("x", "y", "w", "h"):
+    if any(abs(window["frame"][axis] - record["last_frame"][axis]) > EPSILON
+           for axis in ("y", "h")):
+        result["full_height"] = (
+            full_height_margins(window["frame"], display["frame"])
+            if full_height_enabled(window["app"]) else None)
+    if record["width_preferences"] is None:
+        result.update(last_frame=window["frame"], display=display)
+        return result
+    saved = dict(record["width_preferences"])
+    fresh = width_preferences(window["frame"], display["frame"], WIDTH_MODES[window["app"]])
+    for axis in ("x", "w"):
         if abs(window["frame"][axis] - record["last_frame"][axis]) > EPSILON:
             saved[axis] = fresh[axis]
-    if MODES[window["app"]] == "fixed":
+    if WIDTH_MODES[window["app"]] == "fixed":
         if display["frame"]["w"] - window["frame"]["w"] <= EPSILON:
             # Full-width/clamped frames cannot tell us a new alignment.
-            saved["x"] = record["proportions"]["x"]
+            saved["x"] = record["width_preferences"]["x"]
         elif abs(window["frame"]["w"] - record["last_frame"]["w"]) > EPSILON:
             # Resizing changes the available travel even if x didn't move.
             saved["x"] = fresh["x"]
-    result.update(proportions=saved, last_frame=window["frame"], display=display)
+    result.update(width_preferences=saved, last_frame=window["frame"], display=display)
     return result
 
 
@@ -196,7 +295,7 @@ def wait_for_settle(window_id):
     return None
 
 
-def restore(window, target, bounds):
+def restore(window, target, bounds, *, vertical=True):
     window_id = str(window["id"])
     # Move first so the app adopts the destination screen's size limits.
     # Otherwise Electron can reject growth while still associated with the
@@ -204,6 +303,11 @@ def restore(window, target, bounds):
     run(YABAI, "-m", "window", window_id, "--move",
         "abs:{x}:{y}".format(**target))
     time.sleep(0.1)
+    if not vertical:
+        # Width-only rules must not reapply an old height after macOS migration
+        # or an application adjusting its frame during the first move.
+        current = query("--windows", "--window", window_id)
+        target = dict(target, h=current["frame"]["h"])
     run(YABAI, "-m", "window", window_id, "--resize",
         "abs:{w}:{h}".format(**target))
     time.sleep(0.1)
@@ -211,16 +315,40 @@ def restore(window, target, bounds):
     # The app may have a larger minimum size than the requested target.
     desired_x = target["x"]
     requested_travel = bounds["w"] - target["w"]
-    if MODES[window["app"]] == "fixed" and requested_travel > EPSILON:
+    if WIDTH_MODES[window["app"]] == "fixed" and requested_travel > EPSILON:
         # Preserve alignment if the app rounds/constrains the requested width.
         alignment = horizontal_alignment(target, bounds)
         desired_x = bounds["x"] + alignment * max(0, bounds["w"] - resized["w"])
     x = round(max(bounds["x"], min(desired_x,
                   bounds["x"] + bounds["w"] - resized["w"])))
-    y = round(max(bounds["y"], min(target["y"],
-                  bounds["y"] + bounds["h"] - resized["h"])))
+    y = (round(max(bounds["y"], min(target["y"],
+                   bounds["y"] + bounds["h"] - resized["h"])))
+         if vertical else resized["y"])
     run(YABAI, "-m", "window", window_id, "--move",
         "abs:%s:%s" % (x, y))
+    time.sleep(0.1)
+    return query("--windows", "--window", window_id)
+
+
+def restore_full_height(window, target, bounds):
+    """Change only vertical geometry, without applying horizontal preferences."""
+    window_id = str(window["id"])
+    run(YABAI, "-m", "window", window_id, "--move",
+        "abs:%s:%s" % (window["frame"]["x"], target["y"]))
+    time.sleep(0.1)
+    current = query("--windows", "--window", window_id)
+    # Reuse the actual current width, not a remembered width preference.
+    # An absolute size is safe to retry after a timeout; a relative bottom-edge
+    # delta could otherwise be applied twice if the first request did succeed.
+    run(YABAI, "-m", "window", window_id, "--resize",
+        "abs:%s:%s" % (current["frame"]["w"], target["h"]))
+    time.sleep(0.1)
+    actual = query("--windows", "--window", window_id)
+    # Accommodate application minimum heights, preserving its actual x/width.
+    y = round(max(bounds["y"], min(target["y"],
+                  bounds["y"] + bounds["h"] - actual["frame"]["h"])))
+    run(YABAI, "-m", "window", window_id, "--move",
+        "abs:%s:%s" % (actual["frame"]["x"], y))
     time.sleep(0.1)
     return query("--windows", "--window", window_id)
 
@@ -245,20 +373,41 @@ def process_window(window_id, seed=False):
             state = load_state()
             key = str(window_id)
             record = state.get(key)
+            mode = tracking_mode(window["app"])
             if record is not None and record["identity"] == identity(window):
-                record = migrate_record(record, MODES[window["app"]])
+                record = migrate_record(record, WIDTH_MODES.get(window["app"]))
+                if not width_policy_matches(record, window["app"]):
+                    # Adding/removing a width rule doesn't reset global height intent.
+                    fresh = new_record(window, display)
+                    record = dict(record, tracking_mode=mode,
+                                  width_preferences=fresh["width_preferences"])
+                    if "horizontal_position" in fresh:
+                        record["horizontal_position"] = fresh["horizontal_position"]
+                    else:
+                        record.pop("horizontal_position", None)
             if record is None or record["identity"] != identity(window):
                 state[key] = new_record(window, display)
             elif record["display"] != display:
-                target = target_frame(record["proportions"], display["frame"],
-                                      MODES[window["app"]])
+                target = dict(window["frame"])
+                vertical = (full_height_enabled(window["app"])
+                            and record["full_height"] is not None)
+                if record["width_preferences"] is not None:
+                    target.update(target_width(record["width_preferences"], display["frame"],
+                                               WIDTH_MODES[window["app"]]))
+                if vertical:
+                    target = full_height_target(record["full_height"], target, display["frame"])
                 if not close_frame(window["frame"], target):
-                    actual = restore(window, target, display["frame"])
+                    if record["width_preferences"] is not None:
+                        actual = restore(window, target, display["frame"], vertical=vertical)
+                    else:
+                        actual = restore_full_height(window, target, display["frame"])
                     if actual["display"] != window["display"]:
                         # Topology changed again mid-operation. Preserve the
                         # original record for the next display/focus event.
                         return
                     window = actual
+                # Do not relearn full-height intent from macOS's migration
+                # frame, even if a previously short window now fills the screen.
                 state[key] = dict(record, display=display,
                                   last_frame=window["frame"])
             elif not close_frame(record["last_frame"], window["frame"]):
@@ -272,8 +421,25 @@ def process_window(window_id, seed=False):
 
 def refresh(seed=False):
     windows = query("--windows")
+    with (CACHE / "state.lock").open("w") as state_lock:
+        fcntl.flock(state_lock, fcntl.LOCK_EX)
+        snapshot = load_state()
+    displays = usable_displays() if snapshot else {}
+    # Restore active layouts before spending time settling inactive baselines.
+    windows.sort(key=lambda w: not (
+        w["app"] in WIDTH_MODES
+        or snapshot.get(str(w["id"]), {}).get("full_height") is not None))
     for window in windows:
         if eligible(window):
+            record = snapshot.get(str(window["id"]))
+            if (record is not None and record["identity"] == identity(window)
+                    and width_policy_matches(record, window["app"])
+                    and record["display"] == displays.get(window["display"])
+                    and close_frame(record["last_frame"], window["frame"])
+                    and migrate_record(record, WIDTH_MODES.get(window["app"])) == record):
+                # Later monitor-settling passes usually have nothing to do.
+                # Avoid another per-window settling delay for unchanged frames.
+                continue
             try:
                 process_window(window["id"], seed=seed)
             except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
@@ -300,7 +466,7 @@ def install():
         fcntl.flock(state_lock, fcntl.LOCK_EX)
         state = load_state()
         migrated = {
-            key: migrate_record(value, MODES.get(value["identity"][0]))
+            key: migrate_record(value, WIDTH_MODES.get(value["identity"][0]))
             for key, value in state.items()
         }
         if migrated != state:
@@ -313,9 +479,13 @@ def install():
         label = "window-memory-" + event
         subprocess.run([YABAI, "-m", "signal", "--remove", label],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        run(YABAI, "-m", "signal", "--add", "label=" + label,
-            "event=" + event, "app=" + APP_FILTER,
-            "action=" + command + ' window "$YABAI_WINDOW_ID"')
+        arguments = [YABAI, "-m", "signal", "--add", "label=" + label,
+                     "event=" + event,
+                     "action=" + command + ' window "$YABAI_WINDOW_ID"']
+        app_filter = window_signal_filter()
+        if app_filter is not None:
+            arguments.append(app_filter)
+        run(*arguments)
     for event in ("display_added", "display_removed", "display_moved", "display_resized"):
         label = "window-memory-" + event
         subprocess.run([YABAI, "-m", "signal", "--remove", label],
