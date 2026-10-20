@@ -10,87 +10,96 @@ tiling. The shared routing rules and per-laptop Space mappings live in
 
 ### Remembering window geometry across displays
 
-The helper under `.config/yabai/scripts/` has one global height policy for normal,
-resizable windows. App-specific settings control **width only**, with horizontal
-alignment retained alongside it:
+The helper under `.config/yabai/scripts/` uses the same defaults for **all
+eligible apps**, including iTerm2, ChatGPT, Chrome, PyCharm and its remote client.
+There are no app-specific width rules.
 
-| App | Width | Horizontal position |
-| --- | --- | --- |
-| iTerm2, ChatGPT, Google Chrome | Fixed screen points | Fraction of available space around the window |
+| Property | Default |
+| --- | --- |
+| Width | Remember fixed screen points; cap to fit smaller screens without forgetting the preference |
+| Horizontal position | Classify left / center / right; scale the selected edge gap, or center exactly |
+| Height and vertical position | Preserve proportional top and bottom gaps for every window |
+| Tracking | Enabled for eligible windows |
 
-The app-specific configuration is just:
+#### Horizontal alignment and fixed widths
 
-```python
-WIDTH_MODES = {
-    "iTerm2": "fixed",
-    "ChatGPT": "fixed",
-    "Google Chrome": "fixed",
-}
+Measure gaps within the usable screen area:
+
+```text
+left_gap = window_left - screen_left
+right_gap = screen_right - window_right
+
+if abs(left_gap - right_gap) <= 0.15 * usable_screen_width:
+    alignment = center
+elif left_gap < right_gap:
+    alignment = left
+else:
+    alignment = right
 ```
 
-`fixed` remembers width in screen points; `relative` remembers width as a screen
-fraction. Omit an app to leave its width/horizontal placement to macOS and the app.
-There are no app-specific height or vertical-position options.
+The **15% threshold is inclusive** and uses the full usable screen width, not the
+remaining space around the window. Center-aligned windows restore exactly in the
+middle with equal gaps, not with their previous small center offset.
 
-Horizontal placement uses `(window left - screen left) / (screen width -
-window width)`: 0% is left-aligned, 50% is centered, and 100% is right-aligned.
-This keeps fixed-width windows aligned when changing screens, including moving
-from a smaller screen to a larger one. It does not preserve a fixed pixel margin.
-Manual resizing updates placement against the new available space. Full-width
-windows retain a previously remembered alignment; when first learned at full
-width, they default to centered because their alignment is ambiguous.
-Legacy records are migrated without resetting widths or alignment. Old per-app
-height/y properties are removed; only qualifying near-full-height intent becomes
-part of the global height policy.
+| Alignment | Restore on the destination screen |
+| --- | --- |
+| Left | `screen_left + saved_left_gap_fraction * screen_width` |
+| Right | `screen_right - actual_window_width - saved_right_gap_fraction * screen_width` |
+| Center | `screen_left + (screen_width - actual_window_width) / 2` |
 
-Resize or move a window normally to update its remembered layout. When it
-changes displays (or the display resolution/arrangement changes), the helper
-restores configured widths/alignment and any active global height intent after
-you release the mouse. Ordinary shorter windows keep the height and vertical
-position chosen by macOS/the app, even for iTerm2, ChatGPT and Chrome. Menu bars,
-notches and visible Docks are excluded. Oversized requested frames are constrained
-to fit; application minimum sizes and rounding can limit the result. Preferred
-widths, alignments and full-height margins remain saved separately from the
-resulting frame, so those constraints do not become new preferences.
-Monitor changes get repeated settling scans; temporary yabai request timeouts
-are retried with longer deadlines without replacing the saved proportions.
+Every window retains its preferred width. A 600-point window on a 1000-point-wide
+screen remains 600 points wide on a 2000-point screen: a 5% left or right gap
+grows from 50 to 100 points; a centered window's equal gaps grow from 200 to 700.
+If an app imposes a minimum/maximum width, the final position uses its actual
+resulting width. A width larger than the screen is capped without forgetting it.
 
-#### Preserve near-full-height windows across apps
+#### Proportional vertical geometry
 
-All eligible apps, including those in `WIDTH_MODES`, use the same full or
-almost-full-height behavior across display changes. A window qualifies when it
-occupies at least **95% of usable height**,
-with **both** top and bottom gaps no larger than **3% of usable height**.
-Full-height windows stay edge-to-edge; almost-full-height windows retain their
-small proportional top and bottom margins. This is about height, not width.
+Every window remembers its height fraction and vertical placement. Equivalently,
+its top and bottom gaps scale with usable screen height:
 
-This policy changes **only height and vertical position**. For apps without a
-width rule it keeps the width and horizontal placement left by the app/macOS
-after migration. Apps with a width rule additionally restore that width and its
-alignment; there is no separate height override for them.
+```text
+new_top_gap = saved_top_gap_fraction * new_screen_height
+new_bottom_gap = saved_bottom_gap_fraction * new_screen_height
+new_height = new_screen_height - new_top_gap - new_bottom_gap
+```
 
-Manual vertical changes update qualification: making a window shorter or moving
-it away from the usable edges opts it out; making it near-full-height again opts
-it back in. There is no continuous snapping while you work. Non-qualifying
-windows have an inactive baseline recorded too, so macOS clamping a short window
-to full height during unplug is not mistaken for user intent.
+Zero gaps naturally stay full-height. Small gaps stay proportionally small, and
+shorter windows scale too. There is **no near-full-height threshold or separate
+stickiness rule**. Internally, a height fraction plus the nearer vertical edge
+gap represents the same geometry without storing redundant margins. Equal
+vertical gaps choose bottom; with proportional height they remain equal anyway.
+If an app's size limits prevent the requested height, the nearer vertical edge
+is prioritized and the preferred height fraction stays saved.
 
-Settings live near the top of `.config/yabai/scripts/window-memory.py`:
+#### Configuration and exceptions
+
+Settings near the top of `.config/yabai/scripts/window-memory.py` are:
 
 ```python
-FULL_HEIGHT_SETTINGS = {
+DEFAULTS = {
     "enabled": True,
-    "minimum_height_fraction": 0.95,
-    "maximum_edge_gap_fraction": 0.03,
-    "excluded_apps": ("PyCharm", "jetbrains_client"),
+    "horizontal_anchor": "auto",
+    "vertical_anchor": "auto",
+    "width_mode": "fixed",
 }
+APP_OVERRIDES = {}
+HORIZONTAL_CENTER_GAP_FRACTION = 0.15
 ```
 
-`jetbrains_client` covers PyCharm's remote-development client. These exclusions
-and the global enable switch govern height for every app; a width rule does not
-override them. Window signal filters are derived automatically from
-these settings and `WIDTH_MODES`. After following the sync-in/edit/sync-out workflow
-below, reload the helper to refresh its filters and seed existing windows:
+All apps inherit these defaults. Optional sparse app exceptions can set
+`enabled=False` to opt out entirely, or `width_mode` to `relative` (proportional
+width) or `None` (leave width to the app/macOS). No such exceptions are currently
+configured. `fixed` means remembered screen points, not physical pixels.
+
+An axis accepts `auto`, `off`, or an explicit reference: `left`, `center`, `right`
+for `horizontal_anchor`; `top`, `center`, `bottom` for `vertical_anchor`. `off`
+leaves that coordinate to the app/macOS without disabling sizing. An explicit
+`center` override preserves a signed center offset; automatic horizontal center
+classification instead restores exactly centered.
+
+After following the sync-in/edit/sync-out workflow below, reload the helper to
+refresh subscriptions and seed existing windows:
 
 ```sh
 python3 ~/.config/yabai/scripts/window-memory.py install
@@ -105,8 +114,41 @@ resizable `AXStandardWindow` windows with an accessibility reference are
 considered. Popovers, other dialog types, minimized/hidden and fullscreen windows
 are skipped. A Chrome window without an accessibility reference is learned when
 it becomes accessible.
-PyCharm is excluded from both app-to-Space routing and geometry tracking.
-Its project windows and dialogs are left alone.
+PyCharm and its remote-development client (`jetbrains_client`) follow the same
+fixed-width and proportional-height policies as every other app. They remain excluded
+from app-to-Space routing: no rule sends their project windows or dialogs to a
+particular screen or Space. Nonstandard dialogs are skipped by the eligibility
+checks above.
+
+Move or resize a window normally to update its remembered layout. An x/width
+change updates horizontal alignment; a y/height change updates vertical intent
+and the proportional height. Position-only edits do not overwrite constrained preferred
+sizes. There is no continuous snapping. Restoring happens only
+when the display UUID or usable bounds change, after movement settles and you
+release the mouse. Reconnecting a screen does not force windows back onto it.
+
+Menu bars, notches and visible Docks are excluded from usable bounds. Requested
+frames are constrained to fit, and app minimum sizes/rounding can limit results.
+Native app/macOS placement limits can also override a requested coordinate.
+Preferred sizes and anchors remain separate from the resulting frame: constraints
+and the helper's own restores do not become new preferences. Manually filling an
+axis gives equal zero edge gaps, so `auto` learns horizontal center or vertical
+bottom (with full proportional height). Automatic
+screen-change constraints do not reclassify the saved anchor.
+
+Old cache formats migrate without resetting known preferences or moving unchanged
+windows. Migration uses saved source geometry rather than a live constrained
+frame. If an old horizontal record lacks a recoverable gap, its available-space
+alignment is retained temporarily until a fitting baseline allows conversion.
+Previously discarded arbitrary vertical history cannot be recovered; the saved
+observation becomes the new baseline.
+The one-time `horizontal-center-15-proportional-height` update reclassifies saved
+horizontal preferences with the center band, preserving known fixed widths and
+height fractions. Previously unmanaged sizes are seeded from saved source-screen
+observations, not the destination's clamped live frame. These observations may
+already reflect older app/macOS constraints; discarded historical sizes cannot
+be reconstructed. Migration does not center or resize unchanged windows merely
+to update the cache; the new layout applies on their next screen change.
 
 Runtime records and the compiled screen helper live in
 `~/Library/Caches/yabai-window-memory/`, not Git. Python 3 and the Xcode command
@@ -134,7 +176,7 @@ on; the geometry helper decides its size and position on its current display.
 yabai starts -> .yabairc waits for a valid Space inventory
   -> window-memory.py install
      -> compile screen-info.swift if missing or changed
-     -> migrate old records into width-only preferences + global height intent
+     -> normalize/migrate old records into independent position and size preferences
      -> learn current layouts for newly tracked windows
         (existing records can restore if their display has changed)
      -> register labelled window/display signals, replacing old registrations
@@ -143,9 +185,8 @@ yabai starts -> .yabairc waits for a valid Space inventory
 
 `screen-info.swift` reads macOS's usable screen bounds and whether the left mouse
 button is held. Python matches those bounds to yabai's display inventory.
-`window-memory.py` contains app-specific width settings (`WIDTH_MODES`), the global
-near-full-height settings (`FULL_HEIGHT_SETTINGS`), generated signal filters,
-layout calculations, state handling and event handlers.
+`window-memory.py` contains defaults and optional app overrides, the horizontal
+center threshold, shared axis math and restoration, state handling and event handlers.
 
 **Events**
 
@@ -157,13 +198,11 @@ layout calculations, state handling and event handlers.
 | `display_added`, `display_removed` | `display_change()` -> `refresh()` | Rescan tracked windows after plugging/unplugging a monitor |
 | `display_moved`, `display_resized` | `display_change()` -> `refresh()` | Rescan after display arrangement/resolution changes |
 
-With the general policy enabled, window signals cover all apps except excluded
-ones; otherwise only the explicit apps in `WIDTH_MODES` are matched. Display signals
-rescan all eligible windows. `display_change()` makes three
+Window signals cover enabled apps, not just apps with width overrides. Display
+signals rescan all eligible windows. `display_change()` makes three
 passes, waiting 0.5, 1 and 2 seconds before successive passes so late macOS window
-migrations get another chance. Scans prioritize active layouts and skip unchanged
-windows, avoiding repeated settling delays for every app. This does not force
-windows back to a particular monitor when one is reconnected.
+migrations get another chance. Scans skip unchanged windows, avoiding repeated
+settling delays for every app.
 
 **Per-window decision**
 
@@ -175,35 +214,34 @@ event -> coalesce duplicate events with a per-window lock
      |
      +-- no record / different app or process -> learn current layout
      +-- display UUID or usable bounds changed
-     |    -> width configured: restore width and horizontal alignment
-     |    -> global full-height intent active: restore top/bottom margins
-     |    -> no full-height intent: leave height/vertical position alone
-     +-- same display, frame changed -> remember adjustments / update qualification
+     |    -> choose remembered fixed width and proportional height
+     |    -> restore each enabled position axis with its saved anchor and offset
+     +-- same display, frame changed -> learn only the affected axis/size preferences
      +-- nothing changed -> do nothing (also avoids reacting to our own resize)
   -> save state atomically under a shared state-file lock
 ```
 
-`target_width()` calculates the configured width and horizontal alignment.
-`restore()` moves onto the destination screen first, resizes, checks the app's
-actual size, then adjusts horizontal placement. Unless global full-height intent
-is active, it reuses the actual current height and vertical position, not a
-remembered per-app height.
-
-For global height, `full_height_margins()` detects qualification,
-`full_height_target()` scales the remembered margins, and
-`restore_full_height()` moves vertically and sets the height using the actual
-current width, without applying horizontal geometry preferences. Its absolute
-resize commands are safe to retry without applying a relative size delta twice.
+`policy()` merges sparse app overrides over defaults. `capture_position()` uses
+`capture_axis()` with the 15% center band only for horizontal classification;
+`target_axis()` restores each saved reference. `relative_height()` records every
+window's height fraction; `target_layout()` combines sizes with both anchors. One `restore_layout()` moves onto the destination
+screen, refreshes untouched dimensions, resizes as needed, queries the actual
+app-resulting size, then corrects enabled coordinates. Opted-out coordinates stay
+as returned by the app/macOS. Absolute resize commands are safe to retry without
+applying a relative size delta twice.
 
 Records in `~/Library/Caches/yabai-window-memory/windows.json` are keyed by
-window ID and checked against app/process identity. `width_preferences` contains
-only horizontal `x`/`w` preferences (or is `null`); `full_height` contains global
-top/bottom margin fractions (or is `null`). `last_frame` is an observation used
-to distinguish real changes from the helper's own operations, not a per-app
-height setting. Width mode changes reseed horizontal preferences without resetting
-global height intent. Display rescans prune
-records for closed windows. Temporary yabai query/move/resize timeouts retry with
-5-, 10- and 20-second deadlines; failed restores keep the prior record rather
+window ID and checked against app/process identity. `position` holds independent
+x/y anchors, offsets and the rules that produced them (or `null` per opted-out
+axis). `position_model` identifies the current horizontal-center/proportional-height
+algorithm so old records are upgraded once. `width_preferences` holds its mode
+and value (or `null` for an explicit width opt-out); `height_fraction` holds the
+proportional height for every tracked window. `last_frame` and `display` are
+observations, not preferred dimensions. Changing a rule reseeds only that
+preference without moving the window or resetting unrelated intent.
+`state_store()` centralizes normalization, locking and atomic saves; display
+rescans prune records for closed windows. Temporary yabai query/move/resize
+timeouts retry with 5-, 10- and 20-second deadlines; failed restores keep the prior record rather
 than learning the partially applied layout.
 
 ### First-time installation
