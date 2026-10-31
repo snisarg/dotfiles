@@ -12,7 +12,9 @@ tiling. The shared routing rules and per-laptop Space mappings live in
 
 The helper under `.config/yabai/scripts/` uses the same defaults for **all
 eligible apps**, including iTerm2, ChatGPT, Chrome, PyCharm and its remote client.
-There are no app-specific width rules.
+Zoom (`zoom.us`) is the only height-scaling exception: its height is left to
+Zoom/macOS. Its fixed-width and positioning behavior is unchanged. There are
+no app-specific width rules.
 
 | Property | Default |
 | --- | --- |
@@ -55,8 +57,8 @@ resulting width. A width larger than the screen is capped without forgetting it.
 
 #### Proportional vertical geometry
 
-Every window remembers its height fraction and vertical placement. Equivalently,
-its top and bottom gaps scale with usable screen height:
+By default, windows remember their height fraction and vertical placement.
+Equivalently, their top and bottom gaps scale with usable screen height:
 
 ```text
 new_top_gap = saved_top_gap_fraction * new_screen_height
@@ -72,6 +74,11 @@ vertical gaps choose bottom; with proportional height they remain equal anyway.
 If an app's size limits prevent the requested height, the nearer vertical edge
 is prioritized and the preferred height fraction stays saved.
 
+Zoom opts out of height sizing, so its current native height is retained across
+display changes instead of being scaled. Its saved vertical edge still controls
+placement, subject to fitting the usable screen. Previously cached Zoom height
+fractions are cleared without immediately moving or resizing its windows.
+
 #### Configuration and exceptions
 
 Settings near the top of `.config/yabai/scripts/window-memory.py` are:
@@ -82,15 +89,20 @@ DEFAULTS = {
     "horizontal_anchor": "auto",
     "vertical_anchor": "auto",
     "width_mode": "fixed",
+    "height_mode": "relative",
 }
-APP_OVERRIDES = {}
+APP_OVERRIDES = {
+    "zoom.us": {"height_mode": None},
+}
 HORIZONTAL_CENTER_GAP_FRACTION = 0.15
 ```
 
 All apps inherit these defaults. Optional sparse app exceptions can set
 `enabled=False` to opt out entirely, or `width_mode` to `relative` (proportional
-width) or `None` (leave width to the app/macOS). No such exceptions are currently
-configured. `fixed` means remembered screen points, not physical pixels.
+width) or `None` (leave width to the app/macOS). `height_mode` accepts `relative`
+(proportional height, the default) or `None` (leave height to the app/macOS).
+Only Zoom currently uses a height opt-out. `fixed` means remembered screen
+points, not physical pixels.
 
 An axis accepts `auto`, `off`, or an explicit reference: `left`, `center`, `right`
 for `horizontal_anchor`; `top`, `center`, `bottom` for `vertical_anchor`. `off`
@@ -214,7 +226,7 @@ event -> coalesce duplicate events with a per-window lock
      |
      +-- no record / different app or process -> learn current layout
      +-- display UUID or usable bounds changed
-     |    -> choose remembered fixed width and proportional height
+     |    -> choose remembered fixed width and proportional height unless opted out
      |    -> restore each enabled position axis with its saved anchor and offset
      +-- same display, frame changed -> learn only the affected axis/size preferences
      +-- nothing changed -> do nothing (also avoids reacting to our own resize)
@@ -223,9 +235,10 @@ event -> coalesce duplicate events with a per-window lock
 
 `policy()` merges sparse app overrides over defaults. `capture_position()` uses
 `capture_axis()` with the 15% center band only for horizontal classification;
-`target_axis()` restores each saved reference. `relative_height()` records every
-window's height fraction; `target_layout()` combines sizes with both anchors. One `restore_layout()` moves onto the destination
-screen, refreshes untouched dimensions, resizes as needed, queries the actual
+`target_axis()` restores each saved reference. `relative_height()` records the
+height fraction for windows with height sizing enabled; `target_layout()` combines
+sizes with both anchors. One `restore_layout()` moves onto the destination screen,
+refreshes untouched dimensions, resizes as needed, queries the actual
 app-resulting size, then corrects enabled coordinates. Opted-out coordinates stay
 as returned by the app/macOS. Absolute resize commands are safe to retry without
 applying a relative size delta twice.
@@ -236,8 +249,8 @@ x/y anchors, offsets and the rules that produced them (or `null` per opted-out
 axis). `position_model` identifies the current horizontal-center/proportional-height
 algorithm so old records are upgraded once. `width_preferences` holds its mode
 and value (or `null` for an explicit width opt-out); `height_fraction` holds the
-proportional height for every tracked window. `last_frame` and `display` are
-observations, not preferred dimensions. Changing a rule reseeds only that
+proportional height, or `null` when height sizing is opted out. `last_frame` and
+`display` are observations, not preferred dimensions. Changing a rule reseeds only that
 preference without moving the window or resetting unrelated intent.
 `state_store()` centralizes normalization, locking and atomic saves; display
 rescans prune records for closed windows. Temporary yabai query/move/resize

@@ -183,7 +183,7 @@ class PolicyTests(unittest.TestCase):
         self.assertIsNotNone(record["position"]["x"])
         self.assertIsNotNone(record["position"]["y"])
         self.assertEqual(record["width_preferences"], {"mode": "fixed", "value": 600})
-        self.assertEqual(memory.APP_OVERRIDES, {})
+        self.assertNotIn("Safari", memory.APP_OVERRIDES)
 
     def test_fixed_width_apps_inherit_default_positioning(self):
         for app in ("iTerm2", "ChatGPT", "Google Chrome", "PyCharm", "jetbrains_client"):
@@ -234,7 +234,8 @@ class PolicyTests(unittest.TestCase):
             self.assertEqual(memory.window_signal_filter(), "app=^(Safari)$")
 
     def test_invalid_policy_fails_explicitly_instead_of_ignoring_mistakes(self):
-        for override in ({"width_mode": "percent"}, {"horizontal_anchor": "top"},
+        for override in ({"width_mode": "percent"}, {"height_mode": "fixed"},
+                         {"horizontal_anchor": "top"},
                          {"vertical_anchor": "left"}, {"unknown": True}):
             with self.subTest(override=override), \
                     patch.dict(memory.APP_OVERRIDES, Safari=override):
@@ -290,6 +291,16 @@ class LayoutTests(unittest.TestCase):
         current = {"x": -1000, "y": 100, "w": 650, "h": 250}
         self.assertEqual(memory.target_layout(record, current, SMALL["frame"]),
                          {"x": -900, "y": 150, "w": 600, "h": 150})
+
+    def test_zoom_leaves_native_height_while_retaining_width_and_positioning(self):
+        source = window("zoom.us", frame={"x": 200, "y": 120, "w": 600, "h": 300})
+        record = memory.new_record(source, BIG)
+        self.assertIsNone(record["height_fraction"])
+        current = {"x": -1000, "y": 100, "w": 650, "h": 250}
+        small = memory.target_layout(record, current, SMALL["frame"])
+        self.assertEqual(small, {"x": -900, "y": 150, "w": 600, "h": 250})
+        returned = memory.target_layout(record, dict(small, h=280), BIG["frame"])
+        self.assertEqual(returned, dict(source["frame"], h=280))
 
     def test_relative_width_mode_scales_width_with_independent_positions(self):
         with patch.dict(memory.APP_OVERRIDES, Safari={"width_mode": "relative"}):
@@ -369,6 +380,17 @@ class LayoutTests(unittest.TestCase):
 
 
 class LearningTests(unittest.TestCase):
+    def test_zoom_moves_and_resizes_do_not_reenable_height_scaling(self):
+        source = window("zoom.us", frame={"x": 200, "y": 120, "w": 600, "h": 300})
+        record = memory.new_record(source, BIG)
+        for frame, gap in ((dict(source["frame"], y=220), .2),
+                           (dict(source["frame"], h=420), .1)):
+            with self.subTest(frame=frame):
+                updated = memory.updated_record(record, dict(source, frame=frame), BIG)
+                self.assertIsNone(updated["height_fraction"])
+                self.assertEqual(updated["position"]["y"], preference("start", gap))
+                self.assertEqual(updated["width_preferences"], record["width_preferences"])
+
     def test_x_or_width_edits_update_x_but_not_vertical_intent(self):
         record = memory.new_record(window(), BIG)
         for frame in (dict(record["last_frame"], x=1400), dict(record["last_frame"], w=1600)):
@@ -478,6 +500,22 @@ class MigrationTests(unittest.TestCase):
     def test_current_format_is_idempotent_without_relearning(self):
         record = memory.new_record(window(), BIG)
         self.assertEqual(memory.migrate_record(record), record)
+
+    def test_zoom_cached_heights_are_discarded_across_cache_generations(self):
+        source = window("zoom.us", frame={"x": 200, "y": 120, "w": 600, "h": 300})
+        with patch.dict(memory.APP_OVERRIDES, {"zoom.us": {"height_mode": "relative"}}):
+            current = memory.new_record(source, BIG)
+        older = dict(current, position_model="nearest-edge")
+        previous = previous_record(source, full_height={"top": .1, "bottom": .2},
+                                   width={"x": .1, "w": 600})
+        for record in (current, older, previous, legacy_record(source)):
+            with self.subTest(generation=record.get("position_model", "legacy")):
+                before = copy.deepcopy(record)
+                migrated = memory.migrate_record(record)
+                self.assertIsNone(migrated["height_fraction"])
+                self.assertEqual(migrated["width_preferences"], {"mode": "fixed", "value": 600})
+                self.assertEqual(memory.migrate_record(migrated), migrated)
+                self.assertEqual(record, before)
 
     def test_old_auto_center_records_are_reclassified_from_saved_source_edges(self):
         source = window(frame={"x": 400, "y": 200, "w": 800, "h": 300})
@@ -601,6 +639,35 @@ class EventFixture:
 
 
 class EventTests(EventFixture, unittest.TestCase):
+    def test_existing_zoom_window_stops_scaling_without_resetting_its_layout(self):
+        source = window("zoom.us", frame={"x": 200, "y": 120, "w": 600, "h": 300})
+        with patch.dict(memory.APP_OVERRIDES, {"zoom.us": {"height_mode": "relative"}}):
+            old = memory.new_record(source, BIG)
+        self.save({"1": old})
+        self.event(source)
+        self.restore.assert_not_called()
+        saved = memory.load_state()["1"]
+        self.assertIsNone(saved["height_fraction"])
+        self.assertEqual(saved["position"], old["position"])
+        self.assertEqual(saved["width_preferences"], old["width_preferences"])
+        self.event(window("zoom.us", frame={"x": -1000, "y": 100, "w": 650, "h": 250},
+                          display=2))
+        self.assertEqual(memory.load_state()["1"]["last_frame"],
+                         {"x": -900, "y": 150, "w": 600, "h": 250})
+
+    def test_reenabled_zoom_height_scaling_learns_current_height_without_snapping(self):
+        source = window("zoom.us", frame={"x": 200, "y": 120, "w": 600, "h": 300})
+        self.event(source)
+        resized = dict(source, frame=dict(source["frame"], h=420))
+        self.event(resized)
+        with patch.dict(memory.APP_OVERRIDES, {"zoom.us": {"height_mode": "relative"}}):
+            self.event(resized)
+            self.restore.assert_not_called()
+            self.assertEqual(memory.load_state()["1"]["height_fraction"], .42)
+            self.event(window("zoom.us", frame={"x": -1000, "y": 100, "w": 650, "h": 250},
+                              display=2))
+        self.assertEqual(memory.load_state()["1"]["last_frame"]["h"], 210)
+
     def test_manual_horizontal_move_reclassifies_without_immediate_snapping(self):
         source = window("Safari", frame={"x": 200, "y": 120, "w": 600, "h": 300})
         self.event(source)

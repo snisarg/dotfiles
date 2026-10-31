@@ -17,8 +17,11 @@ DEFAULTS = {
     "horizontal_anchor": "auto",
     "vertical_anchor": "auto",
     "width_mode": "fixed",
+    "height_mode": "relative",
 }
-APP_OVERRIDES = {}
+APP_OVERRIDES = {
+    "zoom.us": {"height_mode": None},
+}
 HORIZONTAL_CENTER_GAP_FRACTION = 0.15
 AXES = {"x": ("w", "horizontal_anchor"), "y": ("h", "vertical_anchor")}
 POSITION_MODEL = "horizontal-center-15-proportional-height"
@@ -78,6 +81,8 @@ def policy(app):
     result = dict(DEFAULTS, **override)
     if result["width_mode"] not in (None, "fixed", "relative"):
         raise ValueError("invalid width mode for %s" % app)
+    if result["height_mode"] not in (None, "relative"):
+        raise ValueError("invalid height mode for %s" % app)
     for axis in AXES:
         axis_rule(result, axis)
     return result
@@ -175,19 +180,20 @@ def new_record(window, display):
         "position_model": POSITION_MODEL,
         "position": {a: capture_position(a, frame, bounds, rule=axis_rule(settings, a)) for a in AXES},
         "width_preferences": remember_width(frame, bounds, settings["width_mode"]),
-        "height_fraction": relative_height(frame, bounds),
+        "height_fraction": relative_height(frame, bounds) if settings["height_mode"] else None,
     }
 
 
 def migrate_record(record):
     """Normalize old cache generations from saved source geometry, never live frames."""
     if "position" in record and "height_fraction" in record:
+        settings = policy(record["identity"][0])
         if record.get("position_model") == POSITION_MODEL:
-            return record
+            return dict(record, height_fraction=None) if settings["height_mode"] is None else record
         position = dict(record["position"])
         frame, bounds = record["last_frame"], record["display"]["frame"]
         width = record["width_preferences"]
-        mode = policy(record["identity"][0])["width_mode"]
+        mode = settings["width_mode"]
         if (width["mode"] if width else None) != mode:
             preferred = dict(frame)
             if width:
@@ -216,9 +222,12 @@ def migrate_record(record):
                     # Keep existing vertical intent, including constrained preferences.
                     position[axis] = dict(saved)
         fraction = record["height_fraction"]
+        if settings["height_mode"] is None:
+            fraction = None
+        elif fraction is None:
+            fraction = relative_height(frame, bounds)
         return dict(record, position=position, position_model=POSITION_MODEL,
-                    width_preferences=width,
-                    height_fraction=relative_height(frame, bounds) if fraction is None else fraction)
+                    width_preferences=width, height_fraction=fraction)
     if not all(k in record for k in ("identity", "display", "last_frame")) or not any(
             k in record for k in ("width_preferences", "proportions", "full_height")):
         raise ValueError("unsupported window record")
@@ -237,8 +246,9 @@ def migrate_record(record):
         fraction = relative_height(preferred, bounds)
     template = {"app": app, "pid": record["identity"][1], "frame": preferred}
     result = new_record(template, record["display"])
-    result.update(last_frame=frame,
-                  height_fraction=relative_height(preferred, bounds) if fraction is None else fraction)
+    result.update(last_frame=frame)
+    if settings["height_mode"]:
+        result["height_fraction"] = relative_height(preferred, bounds) if fraction is None else fraction
     if old is not None:
         mode = old.get("mode", "relative" if record.get("horizontal_position") == "screen" else "fixed")
         value = old.get("value", old.get("w"))
@@ -273,6 +283,10 @@ def reconcile_record(record, window, display):
     width = record["width_preferences"]
     if (width["mode"] if width else None) != settings["width_mode"]:
         result["width_preferences"] = remember_width(window["frame"], display["frame"], settings["width_mode"])
+    if settings["height_mode"] is None:
+        result["height_fraction"] = None
+    elif record["height_fraction"] is None:
+        result["height_fraction"] = relative_height(window["frame"], display["frame"])
     return result
 
 
@@ -288,7 +302,9 @@ def updated_record(record, window, display):
         result["width_preferences"] = remember_width(frame, bounds, settings["width_mode"])
     fraction = record["height_fraction"]
     constrained = fraction is not None and abs(before["h"] - fraction * bounds["h"]) > EPSILON
-    if changed(frame, before, ("h",)) or (changed(frame, before, ("y",)) and not constrained):
+    if settings["height_mode"] is None:
+        result["height_fraction"] = None
+    elif changed(frame, before, ("h",)) or (changed(frame, before, ("y",)) and not constrained):
         result["height_fraction"] = relative_height(frame, bounds)
     return result
 
