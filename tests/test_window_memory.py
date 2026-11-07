@@ -6,7 +6,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 SCRIPT = Path(__file__).resolve().parents[1] / ".config/yabai/scripts/window-memory.py"
 spec = importlib.util.spec_from_file_location("window_memory", SCRIPT)
@@ -61,10 +61,10 @@ def previous_record(value, *, full_height=None, width=None, display=BIG):
 
 
 class AxisTests(unittest.TestCase):
-    def test_horizontal_center_band_is_fifteen_percent_of_screen_width_inclusive(self):
-        # Width 600 on a 2000-point screen: center x=700, band is +/-150.
-        for x, anchor in ((549, "start"), (550, "center"), (700, "center"),
-                          (850, "center"), (851, "end")):
+    def test_horizontal_center_band_is_five_percent_of_screen_width_inclusive(self):
+        # Width 600 on a 2000-point screen: center x=700, band is +/-50.
+        for x, anchor in ((649, "start"), (650, "center"), (700, "center"),
+                          (750, "center"), (751, "end")):
             with self.subTest(x=x):
                 frame = {"x": x, "y": 20, "w": 600, "h": 400}
                 saved = memory.capture_position("x", frame, BIG["frame"])
@@ -76,15 +76,15 @@ class AxisTests(unittest.TestCase):
     def test_center_threshold_is_based_on_screen_not_remaining_travel(self):
         for width in (200, 600, 1600):
             center = (2000 - width) / 2
-            for delta, anchor in ((150, "center"), (151, "end"), (-151, "start")):
+            for delta, anchor in ((50, "center"), (51, "end"), (-51, "start")):
                 saved = memory.capture_position("x", {"x": center + delta, "w": width}, BIG["frame"])
                 self.assertEqual(saved["anchor"], anchor)
 
     def test_center_band_can_be_configured_and_does_not_change_vertical_rules(self):
         frame = {"x": 600, "y": 370, "w": 600, "h": 400}
-        self.assertEqual(memory.capture_position("x", frame, BIG["frame"]), preference("center"))
-        with patch.object(memory, "HORIZONTAL_CENTER_GAP_FRACTION", .05):
-            self.assertEqual(memory.capture_position("x", frame, BIG["frame"]), preference("start", .3))
+        self.assertEqual(memory.capture_position("x", frame, BIG["frame"]), preference("start", .3))
+        with patch.object(memory, "HORIZONTAL_CENTER_GAP_FRACTION", .15):
+            self.assertEqual(memory.capture_position("x", frame, BIG["frame"]), preference("center"))
         self.assertEqual(memory.capture_position("y", frame, BIG["frame"]), preference("end", .25))
 
     def test_auto_compares_only_edge_gaps_and_ties_choose_end(self):
@@ -469,9 +469,9 @@ class LearningTests(unittest.TestCase):
 
 class MigrationTests(unittest.TestCase):
     def test_nearest_edge_upgrade_learns_missing_sizes_from_saved_source_not_live_screen(self):
-        record = memory.new_record(window("Safari", frame={"x": 600, "y": 120, "w": 600, "h": 300}), BIG)
+        record = memory.new_record(window("Safari", frame={"x": 650, "y": 120, "w": 600, "h": 300}), BIG)
         record.update(position_model="nearest-edge", width_preferences=None, height_fraction=None)
-        record["position"]["x"] = preference("start", .3)
+        record["position"]["x"] = preference("start", .325)
         migrated = memory.migrate_record(record)
         self.assertEqual(migrated["position"]["x"], preference("center"))
         self.assertEqual(migrated["width_preferences"], {"mode": "fixed", "value": 600})
@@ -627,8 +627,14 @@ class EventFixture:
         patch.object(memory, "STATE", cache / "windows.json").start()
         self.displays = patch.object(memory, "usable_displays", return_value={1: BIG, 2: SMALL}).start()
         self.settle = patch.object(memory, "wait_for_settle").start()
-        self.restore = patch.object(memory, "restore_layout").start()
+        patch.object(memory.time, "sleep").start()
+        self.restore = Mock()
         self.restore.side_effect = lambda w, r, b: dict(w, frame=memory.target_layout(r, w["frame"], b))
+        def actuate(w, r, b, guard=None):
+            actual = self.restore(w, r, b)
+            self.settle.return_value = actual
+            return actual
+        patch.object(memory, "restore_layout", side_effect=actuate).start()
 
     def event(self, value):
         self.settle.return_value = value
@@ -671,11 +677,11 @@ class EventTests(EventFixture, unittest.TestCase):
     def test_manual_horizontal_move_reclassifies_without_immediate_snapping(self):
         source = window("Safari", frame={"x": 200, "y": 120, "w": 600, "h": 300})
         self.event(source)
-        centered = dict(source, frame=dict(source["frame"], x=600))
+        centered = dict(source, frame=dict(source["frame"], x=650))
         self.event(centered)
         self.restore.assert_not_called()
         saved = memory.load_state()["1"]
-        self.assertEqual(saved["last_frame"]["x"], 600)
+        self.assertEqual(saved["last_frame"]["x"], 650)
         self.assertEqual(saved["position"]["x"], preference("center"))
         self.event(window("Safari", frame={"x": -1000, "y": 100, "w": 700, "h": 250}, display=2))
         restored = memory.load_state()["1"]["last_frame"]
@@ -728,11 +734,16 @@ class EventTests(EventFixture, unittest.TestCase):
 
     def test_failed_restore_preserves_all_preferences_for_retry(self):
         self.event(window())
-        before = memory.load_state()
+        before = memory.load_state()["1"]
         self.restore.side_effect = subprocess.TimeoutExpired("yabai", 20)
-        with self.assertRaises(subprocess.TimeoutExpired):
+        with patch.object(memory.sys, "stderr"):
             self.event(window(display=2))
-        self.assertEqual(memory.load_state(), before)
+        saved = memory.load_state()["1"]
+        for key in ("position", "width_preferences", "height_fraction"):
+            self.assertEqual(saved[key], before[key])
+        self.assertEqual(saved["display"], SMALL)
+        self.assertFalse(saved["pending_restore"]["focus_retry_used"])
+        self.assertEqual(self.restore.call_count, len(memory.RESTORE_DELAYS))
 
     def test_topology_change_during_restore_does_not_commit_stale_observations(self):
         self.event(window())
@@ -863,6 +874,162 @@ class EventTests(EventFixture, unittest.TestCase):
         self.assertEqual(saved["last_frame"], current["frame"])
 
 
+class VerifiedRestoreTests(EventFixture, unittest.TestCase):
+    def pending_window(self, focus_retry_used=False):
+        source = window(frame={"x": 200, "y": 20, "w": 600, "h": 1000})
+        record = memory.new_record(source, BIG)
+        current = window(frame={"x": 200, "y": 20, "w": 600, "h": 650})
+        record.update(last_frame=current["frame"],
+                      pending_restore={"focus_retry_used": focus_retry_used})
+        self.save({"1": record})
+        self.settle.return_value = current
+        return current, record
+
+    def test_noop_command_retries_and_restores_saved_geometry(self):
+        source = window(frame={"x": 200, "y": 20, "w": 600, "h": 1000})
+        self.event(source)
+        old = memory.load_state()["1"]
+        current = window(frame={"x": -950, "y": 100, "w": 600, "h": 300}, display=2)
+        target = dict(current, frame=memory.target_layout(old, current["frame"], SMALL["frame"]))
+        self.restore.side_effect = [current, target]
+        self.event(current)
+        saved = memory.load_state()["1"]
+        self.assertEqual(self.restore.call_count, 2)
+        self.assertEqual(saved["last_frame"], target["frame"])
+        self.assertEqual(saved["height_fraction"], 1)
+        self.assertNotIn("pending_restore", saved)
+
+    def test_constraints_get_one_focus_retry_batch_not_an_event_feedback_loop(self):
+        self.event(window())
+        current = window(display=2)
+        self.restore.side_effect = lambda *args: current
+        with patch.object(memory.sys, "stderr") as log:
+            self.event(current)
+            count = len(memory.RESTORE_DELAYS)
+            self.assertEqual(self.restore.call_count, count)
+            saved = memory.load_state()["1"]
+            self.assertFalse(saved["pending_restore"]["focus_retry_used"])
+            self.assertIn("requested=", "".join(c.args[0] for c in log.write.call_args_list))
+            self.assertIn("actual=", "".join(c.args[0] for c in log.write.call_args_list))
+            for event in memory.WINDOW_EVENTS:
+                memory.process_window(1, event=event)  # No active focus: no retry.
+            self.assertEqual(self.restore.call_count, count)
+            current["has-focus"] = True
+            memory.process_window(1, event="window_focused")
+            self.assertEqual(self.restore.call_count, count * 2)
+            self.assertTrue(memory.load_state()["1"]["pending_restore"]["focus_retry_used"])
+            for event in memory.WINDOW_EVENTS:
+                memory.process_window(1, event=event)
+            self.assertEqual(self.restore.call_count, count * 2)
+            for key in ("height_fraction", "width_preferences", "position"):
+                self.assertEqual(memory.load_state()["1"][key], saved[key])
+
+    def test_focus_recovers_unchanged_frame_on_same_display(self):
+        current, old = self.pending_window()
+        self.settle.return_value = dict(current, **{"has-focus": True})
+        memory.process_window(1, event="window_focused")
+        saved = memory.load_state()["1"]
+        self.restore.assert_called_once()
+        self.assertEqual(saved["last_frame"]["h"], 1000)
+        self.assertEqual(saved["height_fraction"], old["height_fraction"])
+        self.assertNotIn("pending_restore", saved)
+
+    def test_focus_budget_is_consumed_even_when_command_times_out(self):
+        current, _ = self.pending_window()
+        self.settle.return_value = dict(current, **{"has-focus": True})
+        self.restore.side_effect = subprocess.TimeoutExpired("yabai", 20)
+        with patch.object(memory.sys, "stderr"):
+            memory.process_window(1, event="window_focused")
+        self.assertTrue(memory.load_state()["1"]["pending_restore"]["focus_retry_used"])
+        count = self.restore.call_count
+        memory.process_window(1, event="window_focused")
+        self.assertEqual(count, len(memory.RESTORE_DELAYS))
+        self.assertEqual(self.restore.call_count, count)
+
+    def test_manual_drag_cancels_pending_and_learns_new_height(self):
+        current, _ = self.pending_window()
+        self.event(dict(current, frame=dict(current["frame"], h=400), user_interacted=True))
+        saved = memory.load_state()["1"]
+        self.restore.assert_not_called()
+        self.assertNotIn("pending_restore", saved)
+        self.assertEqual(saved["height_fraction"], .4)
+
+    def test_ambiguous_change_yields_without_relearning_or_snapping(self):
+        current, old = self.pending_window()
+        self.event(dict(current, frame=dict(current["frame"], h=400)))
+        saved = memory.load_state()["1"]
+        self.restore.assert_not_called()
+        self.assertNotIn("pending_restore", saved)
+        self.assertEqual(saved["last_frame"]["h"], 400)
+        self.assertEqual(saved["height_fraction"], old["height_fraction"])
+
+    def test_late_success_clears_pending_without_another_command(self):
+        current, record = self.pending_window()
+        self.event(dict(current, frame=memory.target_layout(record, current["frame"], BIG["frame"])))
+        self.restore.assert_not_called()
+        self.assertNotIn("pending_restore", memory.load_state()["1"])
+
+    def test_display_change_after_noop_aborts_retry_without_overwriting_intent(self):
+        self.event(window())
+        before = memory.load_state()
+        current = window(display=2)
+        self.settle.side_effect = [current, current, current, window(display=3)]
+        self.restore.side_effect = lambda *args: current
+        memory.process_window(1)
+        self.restore.assert_called_once()
+        self.assertEqual(memory.load_state(), before)
+
+    def test_closed_window_during_retry_preserves_state_and_stops_commands(self):
+        self.event(window())
+        before = memory.load_state()
+        current = window(display=2)
+        self.settle.side_effect = [
+            current, current, current,
+            subprocess.CalledProcessError(1, "yabai", stderr="could not locate window"),
+        ]
+        self.restore.side_effect = lambda *args: current
+        with self.assertRaises(subprocess.CalledProcessError):
+            memory.process_window(1)
+        self.restore.assert_called_once()
+        self.assertEqual(memory.load_state(), before)
+
+    def test_drag_between_attempts_cancels_and_learns_without_another_command(self):
+        self.event(window())
+        current = window(display=2)
+        dragged = dict(current, frame=dict(current["frame"], h=200), user_interacted=True)
+        self.settle.side_effect = [current, current, current, dragged]
+        self.restore.side_effect = lambda *args: current
+        memory.process_window(1)
+        self.restore.assert_called_once()
+        saved = memory.load_state()["1"]
+        self.assertNotIn("pending_restore", saved)
+        self.assertEqual(saved["height_fraction"], .4)
+
+    def test_explicit_repair_uses_saved_intent_without_changing_fixed_width(self):
+        current, record = self.pending_window(focus_retry_used=True)
+        record.pop("pending_restore")  # Old versions left no pending marker.
+        self.save({"1": record})
+        memory.process_window(1, force=True)
+        saved = memory.load_state()["1"]
+        self.assertEqual(saved["last_frame"], {"x": 200, "y": 20, "w": 600, "h": 1000})
+        self.assertEqual(saved["width_preferences"], record["width_preferences"])
+
+    def test_global_cache_is_unlocked_during_retry_and_other_windows_are_preserved(self):
+        self.event(window())
+        other = memory.new_record(window(pid=77), BIG)
+        def restore(w, r, b):
+            # A nonblocking lock detects a regression without hanging the test.
+            with (memory.CACHE / "state.lock").open("w") as lock:
+                memory.fcntl.flock(lock, memory.fcntl.LOCK_EX | memory.fcntl.LOCK_NB)
+            with memory.state_store() as state:
+                state["2"] = other
+            return dict(w, frame=memory.target_layout(r, w["frame"], b))
+        self.restore.side_effect = restore
+        self.event(window(display=2))
+        self.assertEqual(memory.load_state()["2"], other)
+        self.assertEqual(memory.load_state()["1"]["display"], SMALL)
+
+
 class StateStoreTests(EventFixture, unittest.TestCase):
     def test_nested_preference_mutations_are_persisted(self):
         self.save({"1": memory.new_record(window(), BIG)})
@@ -893,6 +1060,49 @@ class StateStoreTests(EventFixture, unittest.TestCase):
 
 
 class RestoreTests(unittest.TestCase):
+    def test_verified_actuator_recovers_when_first_resize_is_silently_ignored(self):
+        source = window(frame={"x": 200, "y": 20, "w": 600, "h": 1000})
+        record = memory.new_record(source, BIG)
+        current = window(frame={"x": 200, "y": 20, "w": 600, "h": 650})
+        resizes = []
+
+        def output(args, **kwargs):
+            operation, value = args[-2:]
+            a, b = map(float, value.split(":")[1:])
+            if operation == "--move":
+                current["frame"].update(x=a, y=b)
+            elif operation == "--resize":
+                resizes.append((a, b))
+                if len(resizes) > 1:
+                    current["frame"].update(w=a, h=b)
+            else:
+                self.fail(operation)
+            return ""
+
+        with patch.object(memory.subprocess, "check_output", side_effect=output), \
+                patch.object(memory, "query", side_effect=lambda *args: copy.deepcopy(current)), \
+                patch.object(memory, "wait_for_settle", side_effect=lambda *args: copy.deepcopy(current)), \
+                patch.object(memory, "usable_displays", return_value={1: BIG}), \
+                patch.object(memory, "screen_info", return_value={"mouse_down": False}), \
+                patch.object(memory.time, "sleep"):
+            saved = memory.verified_restore(copy.deepcopy(current), record, BIG)
+        self.assertEqual(resizes, [(600, 1000), (600, 1000)])
+        self.assertEqual(saved["last_frame"], source["frame"])
+        self.assertNotIn("pending_restore", saved)
+        self.assertEqual(saved["height_fraction"], 1)
+
+    def test_guard_stops_commands_if_user_starts_dragging_between_move_and_resize(self):
+        current = window()
+        record = memory.new_record(current, BIG)
+        with patch.object(memory.subprocess, "check_output", return_value="") as command, \
+                patch.object(memory, "query", return_value=current), \
+                patch.object(memory.time, "sleep"):
+            guard = Mock(side_effect=[None, memory.RestoreInterrupted()])
+            with self.assertRaises(memory.RestoreInterrupted):
+                memory.restore_layout(current, record, SMALL["frame"], guard=guard)
+        self.assertEqual(command.call_count, 1)
+        self.assertEqual(command.call_args.args[0][-2], "--move")
+
     def restore(self, current, record, bounds, *, move_adjustment=None, minimum=(0, 0)):
         operations = []
         def command(*args):
@@ -1017,6 +1227,15 @@ class RestoreTests(unittest.TestCase):
 
 
 class RefreshTests(EventFixture, unittest.TestCase):
+    def test_pending_restore_bypasses_unchanged_frame_shortcut(self):
+        record = memory.new_record(window(), BIG)
+        record["pending_restore"] = {"focus_retry_used": False}
+        self.save({"1": record})
+        with patch.object(memory, "query", return_value=[window()]), \
+                patch.object(memory, "process_window") as process:
+            memory.refresh()
+        process.assert_called_once_with(1, seed=False)
+
     def test_unchanged_windows_skip_per_window_settling(self):
         self.event(window())
         with patch.object(memory, "query", return_value=[window()]), \
@@ -1055,6 +1274,16 @@ class RefreshTests(EventFixture, unittest.TestCase):
 
 
 class SettlingAndSignalTests(unittest.TestCase):
+    def test_mouse_drag_is_reported_after_release(self):
+        before = window()
+        after = window(frame=dict(before["frame"], h=400))
+        with patch.object(memory, "query", side_effect=[before, after, after, after, after]), \
+                patch.object(memory, "screen_info", side_effect=[
+                    {"mouse_down": True}, {"mouse_down": True}, {"mouse_down": False},
+                    {"mouse_down": False}, {"mouse_down": False},
+                ]), patch.object(memory.time, "sleep"):
+            self.assertEqual(memory.wait_for_settle(1), dict(after, user_interacted=True))
+
     def test_waits_for_mouse_release_even_if_frame_already_stable(self):
         with patch.object(memory, "query", return_value=window()) as query, \
                 patch.object(memory, "screen_info", side_effect=[
@@ -1062,7 +1291,7 @@ class SettlingAndSignalTests(unittest.TestCase):
                     {"mouse_down": False}, {"mouse_down": False}, {"mouse_down": False},
                 ]), patch.object(memory.time, "sleep"):
             self.assertEqual(memory.wait_for_settle(1), window())
-            self.assertEqual(query.call_count, 6)
+            self.assertEqual(query.call_count, 5)
 
     def test_unresizable_window_is_not_waited_on(self):
         with patch.object(memory, "query", return_value=dict(window("Slack"), **{"can-resize": False})), \
@@ -1088,11 +1317,25 @@ class SettlingAndSignalTests(unittest.TestCase):
         self.assertEqual(len(signals), 5)
         self.assertTrue(all(not any(a.startswith(("app=", "app!=")) for a in args)
                             for args in signals))
+        for args in signals:
+            event = next(a.removeprefix("event=") for a in args if a.startswith("event="))
+            action = next(a for a in args if a.startswith("action="))
+            self.assertTrue(action.endswith(' window "$YABAI_WINDOW_ID" ' + event))
         self.assertEqual({arg for args in registrations for arg in args if arg.startswith("event=display_")},
                          {"event=display_" + event for event in ("added", "removed", "moved", "resized")})
 
 
 class RetryTests(unittest.TestCase):
+    def test_timeout_retry_rechecks_safety_before_sending_another_command(self):
+        with patch.object(memory.subprocess, "check_output",
+                          side_effect=subprocess.TimeoutExpired("yabai", 5)) as output, \
+                patch.object(memory.time, "sleep"):
+            guard = Mock(side_effect=[None, memory.RestoreInterrupted()])
+            with self.assertRaises(memory.RestoreInterrupted):
+                memory.run(memory.YABAI, "-m", "window", "1", "--resize", "abs:600:1000", guard=guard)
+        output.assert_called_once()
+        self.assertEqual(guard.call_count, 2)
+
     def test_query_timeout_retries_with_longer_deadline(self):
         with patch.object(memory.subprocess, "check_output", side_effect=[subprocess.TimeoutExpired("yabai", 5), "{}"]) as output, \
                 patch.object(memory.time, "sleep"):

@@ -31,7 +31,7 @@ Measure gaps within the usable screen area:
 left_gap = window_left - screen_left
 right_gap = screen_right - window_right
 
-if abs(left_gap - right_gap) <= 0.15 * usable_screen_width:
+if abs(left_gap - right_gap) <= 0.05 * usable_screen_width:
     alignment = center
 elif left_gap < right_gap:
     alignment = left
@@ -39,7 +39,7 @@ else:
     alignment = right
 ```
 
-The **15% threshold is inclusive** and uses the full usable screen width, not the
+The **5% threshold is inclusive** and uses the full usable screen width, not the
 remaining space around the window. Center-aligned windows restore exactly in the
 middle with equal gaps, not with their previous small center offset.
 
@@ -94,7 +94,7 @@ DEFAULTS = {
 APP_OVERRIDES = {
     "zoom.us": {"height_mode": None},
 }
-HORIZONTAL_CENTER_GAP_FRACTION = 0.15
+HORIZONTAL_CENTER_GAP_FRACTION = 0.05
 ```
 
 All apps inherit these defaults. Optional sparse app exceptions can set
@@ -154,7 +154,7 @@ frame. If an old horizontal record lacks a recoverable gap, its available-space
 alignment is retained temporarily until a fitting baseline allows conversion.
 Previously discarded arbitrary vertical history cannot be recovered; the saved
 observation becomes the new baseline.
-The one-time `horizontal-center-15-proportional-height` update reclassifies saved
+The one-time `horizontal-center-5-proportional-height` update reclassifies saved
 horizontal preferences with the center band, preserving known fixed widths and
 height fractions. Previously unmanaged sizes are seeded from saved source-screen
 observations, not the destination's clamped live frame. These observations may
@@ -170,6 +170,16 @@ permission or scripting addition is needed beyond yabai's existing access.
 
 To forget remembered geometry, stop yabai, remove
 `~/Library/Caches/yabai-window-memory/windows.json`, then start yabai again.
+To repair one window from its **existing** saved preferences without clearing
+the cache, find its ID with `yabai -m query --windows`, then run:
+
+```sh
+python3 ~/.config/yabai/scripts/window-memory.py restore <window-id>
+```
+
+This recomputes its target from current usable display bounds, preserving its
+remembered width and height fraction. It refuses to invent preferences for an
+unknown/reused window ID. An unresolved restore is reported on stderr.
 Tests run without moving live windows:
 
 ```sh
@@ -206,15 +216,16 @@ center threshold, shared axis math and restoration, state handling and event han
 | --- | --- | --- |
 | `window_created` | `process_window(id)` | Learn a new window's current layout |
 | `window_moved`, `window_resized` | `process_window(id)` | Remember adjustments, or restore after a display change |
-| `window_focused`, `window_deminimized` | `process_window(id)` | Catch up when a window becomes accessible again |
+| `window_focused` | `process_window(id, event=...)` | Catch up and allow one bounded focus retry for an unfinished restore |
+| `window_deminimized` | `process_window(id)` | Catch up when a window becomes accessible again |
 | `display_added`, `display_removed` | `display_change()` -> `refresh()` | Rescan tracked windows after plugging/unplugging a monitor |
 | `display_moved`, `display_resized` | `display_change()` -> `refresh()` | Rescan after display arrangement/resolution changes |
 
 Window signals cover enabled apps, not just apps with width overrides. Display
 signals rescan all eligible windows. `display_change()` makes three
 passes, waiting 0.5, 1 and 2 seconds before successive passes so late macOS window
-migrations get another chance. Scans skip unchanged windows, avoiding repeated
-settling delays for every app.
+migrations get another chance. Scans skip unchanged windows without pending
+restores, avoiding repeated settling delays for every app.
 
 **Per-window decision**
 
@@ -228,13 +239,18 @@ event -> coalesce duplicate events with a per-window lock
      +-- display UUID or usable bounds changed
      |    -> choose remembered fixed width and proportional height unless opted out
      |    -> restore each enabled position axis with its saved anchor and offset
+     |    -> verify settled geometry; retry incomplete restores with a bounded budget
+     +-- unfinished restore on the same display
+     |    -> accept late success; cancel on observed user interaction
+     |    -> yield to ambiguous external changes without relearning preferences
+     |    -> otherwise retry once on the next active focus, not on own AX events
      +-- same display, frame changed -> learn only the affected axis/size preferences
      +-- nothing changed -> do nothing (also avoids reacting to our own resize)
   -> save state atomically under a shared state-file lock
 ```
 
 `policy()` merges sparse app overrides over defaults. `capture_position()` uses
-`capture_axis()` with the 15% center band only for horizontal classification;
+`capture_axis()` with the 5% center band only for horizontal classification;
 `target_axis()` restores each saved reference. `relative_height()` records the
 height fraction for windows with height sizing enabled; `target_layout()` combines
 sizes with both anchors. One `restore_layout()` moves onto the destination screen,
@@ -242,6 +258,23 @@ refreshes untouched dimensions, resizes as needed, queries the actual
 app-resulting size, then corrects enabled coordinates. Opted-out coordinates stay
 as returned by the app/macOS. Absolute resize commands are safe to retry without
 applying a relative size delta twice.
+
+`verified_restore()` compares settled geometry against the intended target
+using a one-point tolerance. A no-op or rejected resize gets up to three retries
+after 0.5, 1 and 2 seconds. Each attempt and each actuator command rechecks
+identity, eligibility and display bounds; commands also check for a held mouse
+button. Observed dragging cancels restoration and learns the user's adjustment.
+Unexpected geometry changes between attempts cancel retries without assuming
+that the change was manual. The per-window lock coalesces own events, while the
+global state lock is released during waits so other windows can update.
+
+If the bounded batch still cannot reach the target, `pending_restore` retains
+the unfinished status alongside the preferences and actual observation. The next
+active `window_focused` event permits one more bounded batch. Its slot is
+consumed before commands run, including if a command fails. Further focus or
+move/resize events do not replenish the budget; a new display transition or an
+explicit `restore` command can start a fresh batch. Exhaustion logs the window,
+requested frame, actual frame and any command error to yabai's stderr.
 
 Records in `~/Library/Caches/yabai-window-memory/windows.json` are keyed by
 window ID and checked against app/process identity. `position` holds independent
@@ -254,8 +287,9 @@ proportional height, or `null` when height sizing is opted out. `last_frame` and
 preference without moving the window or resetting unrelated intent.
 `state_store()` centralizes normalization, locking and atomic saves; display
 rescans prune records for closed windows. Temporary yabai query/move/resize
-timeouts retry with 5-, 10- and 20-second deadlines; failed restores keep the prior record rather
-than learning the partially applied layout.
+timeouts retry with 5-, 10- and 20-second deadlines. Incomplete restores preserve
+preferences rather than learning partially applied geometry; a closed window or
+topology change during restoration leaves prior intent intact.
 
 ### First-time installation
 

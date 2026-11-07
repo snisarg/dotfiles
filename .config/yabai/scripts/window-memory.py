@@ -22,9 +22,9 @@ DEFAULTS = {
 APP_OVERRIDES = {
     "zoom.us": {"height_mode": None},
 }
-HORIZONTAL_CENTER_GAP_FRACTION = 0.15
+HORIZONTAL_CENTER_GAP_FRACTION = 0.05
 AXES = {"x": ("w", "horizontal_anchor"), "y": ("h", "vertical_anchor")}
-POSITION_MODEL = "horizontal-center-15-proportional-height"
+POSITION_MODEL = "horizontal-center-5-proportional-height"
 WINDOW_EVENTS = ("window_created", "window_moved", "window_resized",
                  "window_focused", "window_deminimized")
 DISPLAY_EVENTS = ("display_added", "display_removed", "display_moved", "display_resized")
@@ -34,13 +34,16 @@ SCREEN_TOOL = CACHE / "screen-info"
 STATE = CACHE / "windows.json"
 YABAI = shutil.which("yabai") or "/opt/homebrew/bin/yabai"
 EPSILON = 1.0  # AX/app rounding, in screen points (not normalized fractions).
+RESTORE_DELAYS = (0, .5, 1, 2)  # Initial attempt plus three settling retries.
 
 
-def run(*args):
+def run(*args, guard=None):
     # Only queries and absolute window commands are retried: no relative deltas.
     retryable = len(args) > 2 and args[0] == YABAI and args[2] in ("query", "window")
     timeouts = (5, 10, 20) if retryable else (5,)
     for attempt, timeout in enumerate(timeouts):
+        if guard:
+            guard()  # Recheck even when retrying a timed-out absolute command.
         try:
             return subprocess.check_output(args, text=True, stderr=subprocess.PIPE, timeout=timeout)
         except subprocess.TimeoutExpired:
@@ -347,15 +350,19 @@ def state_store():
 
 def wait_for_settle(window_id):
     previous, stable = None, 0
+    interacted = False
     for _ in range(600):  # Coalesce AX events; never snap during a held drag.
         window = query("--windows", "--window", str(window_id))
         if not eligible(window):
             return None
         current = (window["display"], window["frame"])
-        if current == previous and not window.get("is-grabbed") and not screen_info()["mouse_down"]:
+        mouse_down = screen_info()["mouse_down"]
+        interacted |= bool(window.get("is-grabbed") or
+                           (mouse_down and previous is not None and current != previous))
+        if current == previous and not window.get("is-grabbed") and not mouse_down:
             stable += 1
             if stable >= 3:
-                return window
+                return dict(window, user_interacted=True) if interacted else window
         else:
             stable = 0
         previous = current
@@ -363,16 +370,17 @@ def wait_for_settle(window_id):
     return None
 
 
-def restore_layout(window, record, bounds):
+def restore_layout(window, record, bounds, guard=None):
     """One actuator: move first, refresh uncontrolled sizes, then anchor actual size."""
     window_id = str(window["id"])
+    options = {"guard": guard} if guard else {}
     target = target_layout(record, window["frame"], bounds)
-    run(YABAI, "-m", "window", window_id, "--move", "abs:{x}:{y}".format(**target))
+    run(YABAI, "-m", "window", window_id, "--move", "abs:{x}:{y}".format(**target), **options)
     time.sleep(.1)
     actual = query("--windows", "--window", window_id)
     target = target_layout(record, actual["frame"], bounds)
     if changed(target, actual["frame"], ("w", "h")):
-        run(YABAI, "-m", "window", window_id, "--resize", "abs:{w}:{h}".format(**target))
+        run(YABAI, "-m", "window", window_id, "--resize", "abs:{w}:{h}".format(**target), **options)
         time.sleep(.1)
         actual = query("--windows", "--window", window_id)
     final = dict(actual["frame"])
@@ -380,10 +388,92 @@ def restore_layout(window, record, bounds):
         if record["position"][axis] is not None:
             final[axis] = target_axis(record["position"][axis], final[size], bounds[axis], bounds[size])
     if changed(final, actual["frame"], ("x", "y")):
-        run(YABAI, "-m", "window", window_id, "--move", "abs:{x}:{y}".format(**final))
+        run(YABAI, "-m", "window", window_id, "--move", "abs:{x}:{y}".format(**final), **options)
         time.sleep(.1)
         actual = query("--windows", "--window", window_id)
     return actual
+
+
+def without_pending(record):
+    result = dict(record)
+    result.pop("pending_restore", None)
+    return result
+
+
+def same_context(window, record, display):
+    return (window is not None and eligible(window)
+            and [window["app"], window["pid"]] == record["identity"]
+            and usable_displays().get(window["display"]) == display)
+
+
+class RestoreInterrupted(Exception):
+    """Stop issuing commands if the user or display topology intervenes."""
+
+
+def verified_restore(window, record, display, focus_retry=False):
+    """Preserve intent on a no-op/app constraint; never mistake observation for success."""
+    bounds = display["frame"]
+    observed = window
+    last_error = None
+
+    def guard():
+        current = query("--windows", "--window", str(window["id"]))
+        if (not same_context(current, record, display)
+                or current.get("is-grabbed") or screen_info()["mouse_down"]):
+            raise RestoreInterrupted()
+
+    def observation(current):
+        return dict(record, display=display, last_frame=current["frame"])
+
+    for delay in RESTORE_DELAYS:
+        if delay:
+            time.sleep(delay)
+        current = wait_for_settle(window["id"])
+        if not same_context(current, record, display):
+            return None  # Keep the old display/intent retryable.
+        if current.get("user_interacted"):
+            return without_pending(updated_record(observation(observed), current, display))
+        target = target_layout(record, current["frame"], bounds)
+        if close_frame(target, current["frame"]):
+            return without_pending(observation(current))
+        if not close_frame(observed["frame"], current["frame"]):
+            # An unobserved move might be keyboard-driven or another app. Yield
+            # rather than fighting it or claiming that it was a manual resize.
+            return without_pending(observation(current))
+        try:
+            actual = restore_layout(current, record, bounds, guard=guard)
+        except RestoreInterrupted:
+            current = wait_for_settle(window["id"])
+            if not same_context(current, record, display):
+                return None
+            if current.get("user_interacted"):
+                return without_pending(updated_record(observation(observed), current, display))
+            return without_pending(observation(current))
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+            # Commands can time out after taking effect. Observe before retrying;
+            # if the window has closed, that query fails and no state is committed.
+            last_error = error
+            actual = current
+        if not same_context(actual, record, display):
+            return None
+        # Verify after AX has settled, not just after a successful command.
+        current = wait_for_settle(window["id"])
+        if not same_context(current, record, display):
+            return None
+        if current.get("user_interacted"):
+            return without_pending(updated_record(observation(actual), current, display))
+        observed = current
+        if close_frame(target_layout(record, current["frame"], bounds), current["frame"]):
+            return without_pending(observation(current))
+
+    target = target_layout(record, observed["frame"], bounds)
+    print("window-memory: unresolved restore %s (%s), requested=%s actual=%s; %s" %
+          (window["id"], window["app"], json.dumps(target, sort_keys=True),
+           json.dumps(observed["frame"], sort_keys=True),
+           ("retry budget exhausted" if focus_retry else "waiting for next focus")
+           + ("; error=%s" % last_error if last_error else "")),
+          file=sys.stderr)
+    return dict(observation(observed), pending_restore={"focus_retry_used": focus_retry})
 
 
 def finalize_legacy(record, frame, bounds):
@@ -400,36 +490,65 @@ def finalize_legacy(record, frame, bounds):
     return dict(record, position=position)
 
 
-def process_window(window_id, seed=False):
+def process_window(window_id, seed=False, event=None, force=False):
     with (CACHE / ("window-%s.lock" % window_id)).open("w") as lock:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             return
+        window = query("--windows", "--window", str(window_id)) if seed else wait_for_settle(window_id)
+        if window is None or not eligible(window):
+            return
+        display = usable_displays().get(window["display"])
+        if display is None:
+            return
+        key, identity = str(window_id), [window["app"], window["pid"]]
         with state_store() as state:
-            window = query("--windows", "--window", str(window_id)) if seed else wait_for_settle(window_id)
-            if window is None or not eligible(window):
-                return
-            display = usable_displays().get(window["display"])
-            if display is None:
-                return
-            key, identity = str(window_id), [window["app"], window["pid"]]
             old = state.get(key)
-            if old is None or old["identity"] != identity:
-                state[key] = new_record(window, display)
-                return
+
+        # Do not hold the global cache lock through settling waits and retries:
+        # other windows must still be able to remember manual changes.
+        if old is None or old["identity"] != identity:
+            if force:
+                raise ValueError("no saved preferences for window %s" % window_id)
+            record = new_record(window, display)
+        else:
             record = reconcile_record(old, window, display)
-            if record["display"] != display:
-                if not close_frame(target_layout(record, window["frame"], display["frame"]), window["frame"]):
-                    actual = restore_layout(window, record, display["frame"])
-                    if actual["display"] != window["display"] or usable_displays().get(actual["display"]) != display:
-                        return  # Topology changed again: keep prior intent retryable.
-                    window = actual
-                record = finalize_legacy(record, window["frame"], display["frame"])
-                record = dict(record, display=display, last_frame=window["frame"])
-            elif not close_frame(record["last_frame"], window["frame"]):
+            pending = record.get("pending_restore")
+            topology_changed = record["display"] != display
+            restore = force or topology_changed
+            focus_retry = False
+            if pending and not restore:
+                if window.get("user_interacted"):
+                    record = without_pending(updated_record(record, window, display))
+                elif close_frame(target_layout(record, window["frame"], display["frame"]), window["frame"]):
+                    record = dict(without_pending(record), last_frame=window["frame"])
+                elif not close_frame(record["last_frame"], window["frame"]):
+                    record = dict(without_pending(record), last_frame=window["frame"])
+                elif (event == "window_focused" and window.get("has-focus")
+                      and not pending["focus_retry_used"]):
+                    restore = focus_retry = True
+                    # Consume this slot before attempting commands. A timeout or
+                    # process interruption must not replenish the focus budget.
+                    record = dict(record, pending_restore={"focus_retry_used": True})
+                    with state_store() as state:
+                        if state.get(key) != old:
+                            return
+                        state[key] = record
+                    old = record
+            elif not restore and not close_frame(record["last_frame"], window["frame"]):
                 record = updated_record(record, window, display)
-            state[key] = record  # Own events are no-ops; context only saves changes.
+            if restore:
+                if window.get("user_interacted") and not force:
+                    record = without_pending(updated_record(record, window, display))
+                else:
+                    record = verified_restore(window, record, display, focus_retry=focus_retry)
+                    if record is None:
+                        return
+                    record = finalize_legacy(record, record["last_frame"], display["frame"])
+        with state_store() as state:
+            if state.get(key) == old:
+                state[key] = record  # Preserve unrelated windows and concurrent policy changes.
 
 
 def refresh(seed=False):
@@ -444,6 +563,7 @@ def refresh(seed=False):
         if (record is not None and record["identity"] == [window["app"], window["pid"]]
                 and record["display"] == displays.get(window["display"])
                 and close_frame(record["last_frame"], window["frame"])
+                and not record.get("pending_restore")
                 and reconcile_record(record, window, record["display"]) == record):
             continue
         try:
@@ -479,7 +599,7 @@ def install():
         label = "window-memory-" + event
         subprocess.run([YABAI, "-m", "signal", "--remove", label],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        action = command + (' window "$YABAI_WINDOW_ID"' if event in WINDOW_EVENTS else " displays")
+        action = command + (' window "$YABAI_WINDOW_ID" ' + event if event in WINDOW_EVENTS else " displays")
         args = [YABAI, "-m", "signal", "--add", "label=" + label, "event=" + event, "action=" + action]
         app_filter = window_signal_filter() if event in WINDOW_EVENTS else None
         run(*(args + [app_filter] if app_filter else args))
@@ -504,10 +624,13 @@ def main():
         install()
     elif sys.argv[1:] == ["displays"]:
         display_change()
-    elif len(sys.argv) == 3 and sys.argv[1] == "window" and sys.argv[2].isdigit():
-        process_window(int(sys.argv[2]))
+    elif (len(sys.argv) in (3, 4) and sys.argv[1] == "window" and sys.argv[2].isdigit()
+          and (len(sys.argv) == 3 or sys.argv[3] in WINDOW_EVENTS)):
+        process_window(int(sys.argv[2]), event=sys.argv[3] if len(sys.argv) == 4 else None)
+    elif len(sys.argv) == 3 and sys.argv[1] == "restore" and sys.argv[2].isdigit():
+        process_window(int(sys.argv[2]), force=True)
     else:
-        raise ValueError("usage: window-memory.py install|displays|window <id>")
+        raise ValueError("usage: window-memory.py install|displays|window <id> [event]|restore <id>")
 
 
 if __name__ == "__main__":
